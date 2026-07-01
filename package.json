@@ -1,0 +1,8 @@
+{
+  "name": "nossa-familia-app",
+  "version": "16.0.0",
+  "private": true,
+  "dependencies": {
+    "firebase-admin": "^13.4.0"
+  }
+}

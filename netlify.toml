@@ -1,0 +1,6 @@
+[build]
+  publish = "."
+  functions = "netlify/functions"
+
+[functions."alertas-vencimento"]
+  schedule = "0 11 * * *"

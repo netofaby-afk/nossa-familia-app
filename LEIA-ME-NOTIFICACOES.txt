@@ -1,0 +1,17 @@
+NOSSA FAMÍLIA — NOTIFICAÇÕES V15
+
+1. Publique este ZIP no Netlify.
+2. Aguarde a publicação terminar.
+3. Remova o atalho antigo da Tela de Início.
+4. Abra o site no Safari e adicione novamente à Tela de Início.
+5. Abra o app pelo ícone.
+6. Entre com o login.
+7. Vá em Relatórios > Alertas de vencimento.
+8. Espere alguns segundos e toque em Ativar notificações.
+
+Caso não funcione:
+Abra no navegador:
+https://SEU-SITE.netlify.app/OneSignalSDKWorker.js
+
+Deve aparecer:
+importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");

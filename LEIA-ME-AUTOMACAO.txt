@@ -1,0 +1,26 @@
+NOSSA FAMÍLIA — AUTOMAÇÃO DE ALERTAS V16
+
+O que esta versão faz
+- Executa todos os dias às 08:00 no horário de São Paulo.
+- Consulta o documento families/principal no Firestore.
+- Envia alertas de contas:
+  • vencidas;
+  • vencendo hoje;
+  • vencendo em 2 dias;
+  • vencendo em 5 dias.
+- Envia uma notificação resumida para todos os aparelhos inscritos no OneSignal.
+- Registra os avisos enviados para não repetir o mesmo alerta no mesmo dia.
+
+IMPORTANTE
+Esta versão precisa ser publicada pelo GitHub conectado ao Netlify.
+O método simples de arrastar ZIP não executa Netlify Functions.
+
+Variáveis exigidas no Netlify
+FIREBASE_PROJECT_ID
+FIREBASE_CLIENT_EMAIL
+FIREBASE_PRIVATE_KEY
+ONESIGNAL_APP_ID
+ONESIGNAL_API_KEY
+APP_URL
+
+Nunca coloque as chaves diretamente nos arquivos.

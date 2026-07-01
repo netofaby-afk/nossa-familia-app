@@ -1,0 +1,13 @@
+NOSSA FAMÍLIA — FIREBASE V13
+
+1. No Firebase Console, abra Firestore Database > Regras.
+2. Apague o texto atual e cole o conteúdo de firestore.rules.txt.
+3. Clique em Publicar.
+4. No Netlify, publique este ZIP no lugar da versão anterior.
+5. Abra o app e entre com um usuário criado em Authentication.
+6. Faça o mesmo no segundo celular.
+
+IMPORTANTE:
+- Os dados financeiros ficam sincronizados.
+- Os comprovantes ainda ficam somente no celular. Para sincronizá-los, será necessário ativar o Firebase Storage.
+- A regra permite acesso somente a usuários autenticados do seu projeto Firebase.
