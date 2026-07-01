@@ -44,6 +44,9 @@ h1{font-size:28px;margin:0}.eyebrow{font-size:13px;color:var(--muted)}
 .kpi-pending{background:linear-gradient(135deg,#c66d85,#d893a5)}
 .kpi-reserve{background:linear-gradient(135deg,#5b7fc4,#7d9bd6)}
 .kpi-month{background:linear-gradient(135deg,#8a69b8,#a98ccf)}
+.kpi-paid{background:linear-gradient(135deg,#2f8f68,#62b98f)}
+.kpi-remaining{background:linear-gradient(135deg,#c98a3e,#e4ad67)}
+.due-filter-box{grid-column:1/-1;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}.due-filter-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}.due-chips{display:flex;flex-wrap:wrap;gap:8px}.due-chip{width:auto;padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:#f7f8fb;color:var(--text);font-weight:850;font-size:13px}.due-chip.active{background:var(--blue);color:#fff;border-color:var(--blue);box-shadow:0 6px 16px rgba(68,104,180,.2)}.due-filter-note{font-size:12px;color:var(--muted);margin-top:8px}
 .kpi-icon{font-size:24px;margin-bottom:10px}
 .month-base{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#fff;border-radius:18px;padding:12px 14px;box-shadow:var(--shadow);margin:0 0 14px}
 .month-base label{font-size:12px;color:var(--muted);font-weight:850;white-space:nowrap}
@@ -201,6 +204,8 @@ body.dark .sheet{background:#1f1f1f}
 
 <div class="grid">
   <div class="card kpi-card kpi-pending" onclick="openFiltered('pending')"><div class="kpi-icon">⏳</div><h3>A pagar no mês</h3><div id="kPending" class="value sm">R$ 0,00</div></div>
+  <div class="card kpi-card kpi-paid" onclick="openFiltered('paidExpense')"><div class="kpi-icon">✅</div><h3>Pago no mês</h3><div id="kPaid" class="value sm">R$ 0,00</div></div>
+  <div class="card kpi-card kpi-remaining" onclick="openFiltered('pending')"><div class="kpi-icon">🧮</div><h3>Restante a pagar</h3><div id="kRemaining" class="value sm">R$ 0,00</div></div>
   <div class="card kpi-card kpi-income" onclick="openFiltered('income')"><div class="kpi-icon">↗</div><h3>Receitas do mês</h3><div id="kIncome" class="value sm">R$ 0,00</div></div>
   <div class="card kpi-card kpi-reserve" onclick="showScreen('reserve')"><div class="kpi-icon">🛡️</div><h3>Reserva atual</h3><div id="kReserve" class="value sm">R$ 0,00</div></div>
   <div class="card kpi-card kpi-month" onclick="openFiltered('expense')"><div class="kpi-icon">📊</div><h3>Total de despesas</h3><div id="kExpense" class="value sm">R$ 0,00</div></div>
@@ -252,14 +257,26 @@ body.dark .sheet{background:#1f1f1f}
 <option value="7">Próximos 7 dias</option>
 <option value="15">Próximos 15 dias</option>
 <option value="30">Próximos 30 dias</option>
-<option value="day5">Vencem no dia 5</option>
-<option value="day10">Vencem no dia 10</option>
-<option value="day20">Vencem no dia 20</option>
-<option value="day25">Vencem no dia 25</option>
-<option value="day30">Vencem no dia 30</option>
+
+
+
+
+
 <option value="dayCustom">Dia personalizado</option>
 <option value="custom">Período personalizado</option>
 </select>
+<div class="due-filter-box">
+  <div class="due-filter-title"><div><div class="eyebrow">Dias de vencimento</div><strong>Selecione um ou mais dias</strong></div><button type="button" class="text-btn" onclick="clearDueDays()">Desmarcar</button></div>
+  <div id="dueDayChips" class="due-chips">
+    <button type="button" class="due-chip" data-day="5" onclick="toggleDueDay(5)">Dia 05</button>
+    <button type="button" class="due-chip" data-day="10" onclick="toggleDueDay(10)">Dia 10</button>
+    <button type="button" class="due-chip" data-day="15" onclick="toggleDueDay(15)">Dia 15</button>
+    <button type="button" class="due-chip" data-day="20" onclick="toggleDueDay(20)">Dia 20</button>
+    <button type="button" class="due-chip" data-day="25" onclick="toggleDueDay(25)">Dia 25</button>
+    <button type="button" class="due-chip" data-day="30" onclick="toggleDueDay(30)">Dia 30</button>
+  </div>
+  <div id="dueFilterNote" class="due-filter-note">Nenhum dia selecionado. Toque para marcar; toque novamente para desmarcar.</div>
+</div>
 <div id="customDayWrap" class="full" style="display:none">
 <label class="eyebrow">Dia do vencimento</label>
 <input id="customDueDay" type="number" min="1" max="31" placeholder="Ex.: 12" oninput="renderTransactions()">
@@ -603,6 +620,7 @@ const baseCategories=['Água','Luz','Internet','Moradia','Alimentação','Filha'
 function getCategories(){return [...new Set([...baseCategories,...(data.customCategories||[])])].sort((a,b)=>a.localeCompare(b,'pt-BR'))}
 const icons={'Água':'💧','Luz':'💡','Internet':'📶','Moradia':'🏠','Alimentação':'🛒','Filha':'👧','Curso':'📚','Mesada':'💰','Passeios':'🎡','Família':'👨‍👩‍👧','Saúde':'🩺','Transporte':'🚗','Lazer':'🎬','Salário':'💼','Renda extra':'➕','Outros':'🧾'};
 let data=JSON.parse(localStorage.getItem(DB)||'null')||{transactions:[],reserve:[],budgets:{},reserveGoal:20000,closedMonths:{}};
+const selectedDueDays=new Set();
 if(!data.closedMonths)data.closedMonths={};
 if(!data.customCategories)data.customCategories=[];
 if(!data.settings)data.settings={people:[],favoriteCategories:[],savingsGoal:0,theme:'light'};
@@ -837,12 +855,14 @@ function resetFilters(){
  customDueDay.value='';
  dateFrom.value='';
  dateTo.value='';
+ clearDueDays(false);
 }
 function openFiltered(kind){
  showScreen('transactions');
  resetFilters();
  if(kind==='pending'){statusFilter.value='pending';typeFilter.value='expense';}
  if(kind==='income'){typeFilter.value='income';}
+ if(kind==='paidExpense'){statusFilter.value='paid';typeFilter.value='expense';}
  if(kind==='expense'){typeFilter.value='expense';}
  if(kind==='late'){statusFilter.value='late';typeFilter.value='expense';}
  if(kind==='today'){statusFilter.value='pending';typeFilter.value='expense';dateQuickFilter.value='today';}
@@ -855,8 +875,10 @@ function filteredMonth(){return data.transactions.filter(t=>ym(t.date)===current
 function renderHome(){
  const tx=filteredMonth(),inc=tx.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0),exp=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+b.value,0);
  const pending=tx.filter(t=>t.type==='expense'&&!t.paid).reduce((a,b)=>a+b.value,0);
+ const paid=tx.filter(t=>t.type==='expense'&&t.paid).reduce((a,b)=>a+b.value,0);
+ const remaining=Math.max(0,exp-paid);
  const reserve=data.reserve.reduce((a,r)=>a+(r.type==='in'?r.value:-r.value),0);
- kIncome.textContent=money(inc);kPending.textContent=money(pending);kReserve.textContent=money(reserve);kBalance.textContent=money(inc-exp);kExpense.textContent=money(exp);heroIncome.textContent=money(inc);heroExpense.textContent=money(exp);heroMonth.textContent=new Date(currentMonth()+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'short'}).replace('.','');const h=new Date().getHours();greeting.textContent=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
+ kIncome.textContent=money(inc);kPending.textContent=money(pending);kPaid.textContent=money(paid);kRemaining.textContent=money(remaining);kReserve.textContent=money(reserve);kBalance.textContent=money(inc-exp);kExpense.textContent=money(exp);heroIncome.textContent=money(inc);heroExpense.textContent=money(exp);heroMonth.textContent=new Date(currentMonth()+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'short'}).replace('.','');const h=new Date().getHours();greeting.textContent=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
  const overdue=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)<0).sort((a,b)=>a.date.localeCompare(b.date));
  const todayList=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)===0).sort((a,b)=>a.date.localeCompare(b.date));
  const next7=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)>0&&daysUntil(t.date)<=7).sort((a,b)=>a.date.localeCompare(b.date));
@@ -898,10 +920,7 @@ function renderTransactions(){
 
  if(df==='today')list=list.filter(t=>daysUntil(t.date)===0);
  if(['7','15','30'].includes(df)){const n=Number(df);list=list.filter(t=>daysUntil(t.date)>=0&&daysUntil(t.date)<=n)}
- if(['day5','day10','day20','day25','day30'].includes(df)){
-   const day=Number(df.replace('day',''));
-   list=list.filter(t=>new Date(t.date+'T12:00:00').getDate()===day);
- }
+ if(selectedDueDays.size){list=list.filter(t=>selectedDueDays.has(new Date(t.date+'T12:00:00').getDate()));}
  if(df==='dayCustom'){
    const day=Number(customDueDay.value);
    if(day>=1&&day<=31)list=list.filter(t=>new Date(t.date+'T12:00:00').getDate()===day);
@@ -920,6 +939,7 @@ function renderTransactions(){
  else if(df==='7')summaryTitle='Total dos próximos 7 dias';
  else if(df==='15')summaryTitle='Total dos próximos 15 dias';
  else if(df==='30')summaryTitle='Total dos próximos 30 dias';
+ else if(selectedDueDays.size)summaryTitle=`Total dos vencimentos nos dias ${[...selectedDueDays].sort((a,b)=>a-b).map(d=>String(d).padStart(2,'0')).join(' e ')}`;
  filterSummary.innerHTML=`<div style="font-size:13px;color:var(--muted);font-weight:850">${summaryTitle}</div>
  <div class="value sm" style="margin-top:6px">${money(totalExpense)}</div>
  <div class="item-meta">${list.length} lançamento(s)${totalIncome?` • Receitas: ${money(totalIncome)}`:''}</div>`;
@@ -928,6 +948,23 @@ function renderTransactions(){
  txCount.textContent=list.length+' itens';
  txList.innerHTML=list.map(t=>itemHTML(t,true)).join('')||'<div class="empty">Nenhum lançamento neste filtro.</div>';
 }
+
+function toggleDueDay(day){
+ if(selectedDueDays.has(day)) selectedDueDays.delete(day); else selectedDueDays.add(day);
+ updateDueDayChips();
+ renderTransactions();
+}
+function clearDueDays(render=true){
+ selectedDueDays.clear();
+ updateDueDayChips();
+ if(render) renderTransactions();
+}
+function updateDueDayChips(){
+ document.querySelectorAll('.due-chip').forEach(btn=>btn.classList.toggle('active',selectedDueDays.has(Number(btn.dataset.day))));
+ const days=[...selectedDueDays].sort((a,b)=>a-b);
+ if(typeof dueFilterNote!=='undefined') dueFilterNote.textContent=days.length?`${days.length} vencimento(s) selecionado(s): dias ${days.map(d=>String(d).padStart(2,'0')).join(' e ')}`:'Nenhum dia selecionado. Toque para marcar; toque novamente para desmarcar.';
+}
+
 function toggleCustomDate(){
  customDateWrap.style.display=dateQuickFilter.value==='custom'?'block':'none';
  customDayWrap.style.display=dateQuickFilter.value==='dayCustom'?'block':'none';
