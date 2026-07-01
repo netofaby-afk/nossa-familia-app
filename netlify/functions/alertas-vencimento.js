@@ -96,7 +96,7 @@ exports.handler = async (event) => {
     return {
       statusCode: 500,
       body: JSON.stringify(
-        { error: `VariÃ¡veis ausentes: ${missing.join(", ")}` },
+        { error: `Vari\u00e1veis ausentes: ${missing.join(", ")}` },
         null,
         2
       ),
@@ -114,7 +114,7 @@ exports.handler = async (event) => {
       return {
         statusCode: 404,
         body: JSON.stringify(
-          { error: "Documento families/principal nÃ£o encontrado." },
+          { error: "Documento families/principal n\u00e3o encontrado." },
           null,
           2
         ),
@@ -144,8 +144,8 @@ exports.handler = async (event) => {
 
     if (force) {
       const result = await sendPush(
-        "Teste automÃ¡tico Nossa FamÃ­lia",
-        `A funÃ§Ã£o do Netlify estÃ¡ conectada ao OneSignal. Data considerada: ${today}.`
+        "Teste autom\u00e1tico Nossa Fam\u00edlia",
+        `A fun\u00e7\u00e3o do Netlify est\u00e1 conectada ao OneSignal. Data considerada: ${today}.`
       );
 
       await ref.set(
@@ -220,7 +220,7 @@ exports.handler = async (event) => {
 
       const message =
         count === 1
-          ? `${items[0].title} â ${formatBRL(items[0].value)} ${phrase}.`
+          ? `${items[0].title} - ${formatBRL(items[0].value)} ${phrase}.`
           : `${count} contas, total de ${formatBRL(total)}, ${phrase}.`;
 
       const oneSignalResult = await sendPush(title, message);
@@ -233,7 +233,7 @@ exports.handler = async (event) => {
       "overdue",
       "Contas vencidas",
       groups.overdue,
-      "estÃ£o vencidas"
+      "est\u00e3o vencidas"
     );
 
     await sendGroup(
