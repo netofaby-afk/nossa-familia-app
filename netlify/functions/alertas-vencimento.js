@@ -36,7 +36,14 @@ async function sendPush(title, message) {
     body: JSON.stringify({
       app_id: process.env.ONESIGNAL_APP_ID,
       target_channel: "push",
-      included_segments: ["Subscribed Users"],
+      filters: [
+        {
+          field: "tag",
+          key: "familia",
+          relation: "=",
+          value: "principal"
+        }
+      ],
       headings: { en: title, pt: title },
       contents: { en: message, pt: message },
       url: process.env.APP_URL || undefined,
@@ -44,7 +51,11 @@ async function sendPush(title, message) {
   });
   const body = await response.text();
   if (!response.ok) throw new Error(`OneSignal ${response.status}: ${body}`);
-  return body;
+  try {
+    return JSON.parse(body);
+  } catch {
+    return { raw: body };
+  }
 }
 
 exports.handler = async (event) => {
@@ -109,4 +120,3 @@ exports.handler = async (event) => {
     return {statusCode:500,body:JSON.stringify({ok:false,error:error.message,stack:error.stack},null,2)};
   }
 };
-
