@@ -417,6 +417,8 @@ const ONESIGNAL_APP_ID = "e625171d-77f6-4998-b077-4581d815c4a0";
 let oneSignalReady = false;
 let oneSignalInstance = null;
 let oneSignalInitError = "";
+let oneSignalInitStarted = false;
+let oneSignalInitPromise = null;
 
 function isStandaloneApp(){
   return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -427,43 +429,71 @@ function setNotificationMessage(text){
 }
 
 async function initializeOneSignal(){
-  setNotificationMessage('Inicializando notificações…');
-
-  try{
-    const workerResponse = await fetch('./OneSignalSDKWorker.js', {cache:'no-store'});
-    if(!workerResponse.ok){
-      throw new Error('O arquivo de notificações não foi encontrado no site.');
-    }
-  }catch(err){
-    oneSignalInitError = 'O arquivo OneSignalSDKWorker.js não está acessível.';
-    setNotificationMessage(oneSignalInitError);
-    return;
+  if(oneSignalReady && oneSignalInstance){
+    await updateNotificationState();
+    return true;
   }
 
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(async function(OneSignal) {
+  if(oneSignalInitPromise){
+    return oneSignalInitPromise;
+  }
+
+  oneSignalInitStarted = true;
+  setNotificationMessage('Inicializando notificações…');
+
+  oneSignalInitPromise = (async () => {
     try{
-      oneSignalInstance = OneSignal;
-
-      await OneSignal.init({
-        appId: ONESIGNAL_APP_ID
-      });
-
-      oneSignalReady = true;
-
-      if(firebaseUser){
-        try{ await OneSignal.login(firebaseUser.uid); }catch(e){}
-        try{ await OneSignal.User.addTag("familia","principal"); }catch(e){}
-        try{ await OneSignal.User.addTag("email",firebaseUser.email||""); }catch(e){}
+      const workerResponse = await fetch('./OneSignalSDKWorker.js', {cache:'no-store'});
+      if(!workerResponse.ok){
+        throw new Error('O arquivo de notificações não foi encontrado no site.');
       }
 
-      await updateNotificationState();
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+
+      return await new Promise((resolve) => {
+        OneSignalDeferred.push(async function(OneSignal) {
+          try{
+            oneSignalInstance = OneSignal;
+
+            try{
+              await OneSignal.init({
+                appId: ONESIGNAL_APP_ID
+              });
+            }catch(initErr){
+              const msg = String(initErr && initErr.message || initErr || '');
+              if(!msg.toLowerCase().includes('already initialized')){
+                throw initErr;
+              }
+            }
+
+            oneSignalReady = true;
+            oneSignalInitError = '';
+
+            if(firebaseUser){
+              try{ await OneSignal.login(firebaseUser.uid); }catch(e){}
+              try{ await OneSignal.User.addTag("familia","principal"); }catch(e){}
+              try{ await OneSignal.User.addTag("email",firebaseUser.email||""); }catch(e){}
+            }
+
+            await updateNotificationState();
+            resolve(true);
+          }catch(err){
+            console.error('Erro ao iniciar OneSignal:', err);
+            oneSignalInitError = err && err.message ? err.message : 'Erro desconhecido ao iniciar as notificações.';
+            setNotificationMessage('Falha ao iniciar: ' + oneSignalInitError);
+            resolve(false);
+          }
+        });
+      });
     }catch(err){
-      console.error('Erro ao iniciar OneSignal:', err);
-      oneSignalInitError = err && err.message ? err.message : 'Erro desconhecido ao iniciar as notificações.';
+      console.error('Erro ao preparar OneSignal:', err);
+      oneSignalInitError = err && err.message ? err.message : 'Erro desconhecido.';
       setNotificationMessage('Falha ao iniciar: ' + oneSignalInitError);
+      return false;
     }
-  });
+  })();
+
+  return oneSignalInitPromise;
 }
 
 async function enableNotifications(){
@@ -473,9 +503,9 @@ async function enableNotifications(){
   }
 
   if(!oneSignalReady || !oneSignalInstance){
-    setNotificationMessage(oneSignalInitError ? 'Falha: ' + oneSignalInitError : 'As notificações ainda estão carregando. Toque novamente em alguns segundos.');
-    initializeOneSignal();
-    return;
+    setNotificationMessage('Carregando notificações…');
+    const ready = await initializeOneSignal();
+    if(!ready)return;
   }
 
   enableNotificationsBtn.disabled = true;
@@ -547,8 +577,8 @@ async function updateNotificationState(){
 }
 
 window.addEventListener('load', () => {
-  setTimeout(initializeOneSignal, 600);
-});
+  if(!oneSignalInitStarted)setTimeout(initializeOneSignal, 600);
+}, { once:true });
 
 const firebaseConfig = {
   apiKey: "AIzaSyA5uuIh8OdDRsp4HzRFrih3lKBAtg91X9w",
