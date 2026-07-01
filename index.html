@@ -611,7 +611,10 @@ let currentPaymentReceipt='';
 let currentViewedReceipt='';
 const money=v=>new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
 const ym=d=>d.slice(0,7);
-const today=()=>new Date(new Date().toDateString());
+const today=()=>{
+ const n=new Date();
+ return new Date(n.getFullYear(),n.getMonth(),n.getDate(),12,0,0,0);
+};
 const parseMoney=s=>parseFloat((s||'').replace(/\./g,'').replace(',','.'))||0;
 function persist(){
  localStorage.setItem(DB,JSON.stringify(data));
@@ -710,7 +713,11 @@ function ensureMonthOpen(date){
  return true;
 }
 function currentMonth(){return homeMonthFilter.value||monthFilter.value||localStorage.getItem(MONTH_KEY)||new Date().toISOString().slice(0,7)}
-function daysUntil(s){return Math.ceil((new Date(s+'T12:00:00')-today())/86400000)}
+function daysUntil(s){
+ const [y,m,d]=s.split('-').map(Number);
+ const due=new Date(y,m-1,d,12,0,0,0);
+ return Math.round((due-today())/86400000);
+}
 function generateRecurring(){
  const originals=data.transactions.filter(t=>t.repeat==='monthly'&&!t.recurringGenerated&&t.type);
  originals.forEach(t=>{
