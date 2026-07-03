@@ -156,6 +156,98 @@ body.dark .sheet{background:#1f1f1f}
 .notification-button{width:100%;border:0;border-radius:15px;padding:14px;background:#5b7fc4;color:#fff;font-weight:900;margin-top:12px}
 .notification-button:disabled{opacity:.55}
 
+/* Seleção de contas para pagamento em grupo */
+.item.selected-for-payment{
+  outline:2px solid var(--blue);
+  background:#f2f6ff;
+}
+.select-payment-btn{
+  border:2px solid var(--line);
+  background:#fff;
+  color:var(--muted);
+  width:36px;
+  height:36px;
+  border-radius:12px;
+  font-weight:900;
+  display:grid;
+  place-items:center;
+  flex:0 0 36px;
+}
+.select-payment-btn.active{
+  border-color:var(--blue);
+  background:var(--blue);
+  color:#fff;
+}
+.payment-selection-bar{
+  position:fixed;
+  left:50%;
+  bottom:calc(78px + env(safe-area-inset-bottom));
+  transform:translateX(-50%) translateY(130%);
+  width:min(500px,calc(100% - 20px));
+  z-index:14;
+  background:#211e1a;
+  color:#fff;
+  border-radius:20px;
+  padding:13px 14px;
+  box-shadow:0 16px 38px rgba(0,0,0,.28);
+  transition:transform .2s ease;
+}
+.payment-selection-bar.show{
+  transform:translateX(-50%) translateY(0);
+}
+.payment-selection-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:10px;
+}
+.payment-selection-count{
+  font-size:13px;
+  color:rgba(255,255,255,.78);
+}
+.payment-selection-total{
+  font-size:20px;
+  font-weight:900;
+}
+.payment-selection-actions{
+  display:grid;
+  grid-template-columns:1fr 1.35fr;
+  gap:8px;
+}
+.payment-selection-actions button{
+  border:0;
+  border-radius:13px;
+  padding:11px 10px;
+  font-weight:900;
+}
+.selection-clear{
+  background:rgba(255,255,255,.14);
+  color:#fff;
+}
+.selection-pay{
+  background:#fff;
+  color:#211e1a;
+}
+.batch-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:10px;
+}
+.batch-item{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:9px 0;
+  border-bottom:1px solid var(--line);
+  font-size:13px;
+}
+.batch-item:last-child{border-bottom:0}
+body.dark .item.selected-for-payment{background:#263248}
+body.dark .select-payment-btn{background:#2a2a2a}
+body.dark .select-payment-btn.active{background:var(--blue)}
+
 </style>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -362,6 +454,19 @@ body.dark .sheet{background:#1f1f1f}
   <div id="settingsPreview" class="chip-list"></div>
 </div>
 </section>
+</div>
+
+<div id="paymentSelectionBar" class="payment-selection-bar">
+  <div class="payment-selection-top">
+    <div>
+      <div id="paymentSelectionCount" class="payment-selection-count">0 contas selecionadas</div>
+      <div id="paymentSelectionTotal" class="payment-selection-total">R$ 0,00</div>
+    </div>
+  </div>
+  <div class="payment-selection-actions">
+    <button class="selection-clear" onclick="clearPaymentSelection()">Desmarcar todas</button>
+    <button class="selection-pay" onclick="openBatchPayment()">Pagar selecionadas</button>
+  </div>
 </div>
 
 <button class="fab" onclick="openTransaction()">+</button>
@@ -628,6 +733,8 @@ function getCategories(){return [...new Set([...baseCategories,...(data.customCa
 const icons={'Água':'💧','Luz':'💡','Internet':'📶','Moradia':'🏠','Alimentação':'🛒','Filha':'👧','Curso':'📚','Mesada':'💰','Passeios':'🎡','Família':'👨‍👩‍👧','Saúde':'🩺','Transporte':'🚗','Lazer':'🎬','Salário':'💼','Renda extra':'➕','Outros':'🧾'};
 let data=JSON.parse(localStorage.getItem(DB)||'null')||{transactions:[],reserve:[],budgets:{},reserveGoal:20000,closedMonths:{}};
 const selectedDueDays=new Set();
+const selectedPaymentIds=new Set();
+let paymentMode='single';
 if(!data.closedMonths)data.closedMonths={};
 if(!data.customCategories)data.customCategories=[];
 if(!data.settings)data.settings={people:[],favoriteCategories:[],savingsGoal:0,theme:'light'};
@@ -974,6 +1081,7 @@ function renderTransactions(){
  closedMonthBanner.innerHTML=closed?`<div class="closed-banner">🔒 Este mês está fechado. Reabra em Relatórios para fazer alterações.</div>`:'';
  txCount.textContent=list.length+' itens';
  txList.innerHTML=list.map(t=>itemHTML(t,true)).join('')||'<div class="empty">Nenhum lançamento neste filtro.</div>';
+ updatePaymentSelectionBar();
 }
 
 function toggleDueDay(day){
@@ -999,8 +1107,72 @@ function toggleCustomDate(){
 function itemHTML(t,actions){
  let d=daysUntil(t.date),status=t.paid?(t.type==='income'?'Recebido':'Pago'):t.type==='income'?'A receber':d<0?'Atrasado':d===0?'Vence hoje':d<=7?`Vence em ${d} dias`:new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR');
  let cls=t.paid?'ok':(t.type==='expense'&&d<0)?'late':d<=7?'soon':'';
- return `<div class="item"><div class="ico">${icons[t.category]||'🧾'}</div><div class="item-main" onclick="handleTransactionClick(${t.id})"><div class="item-title">${t.title}</div><div class="item-meta">${t.category}${t.person?' • '+t.person:''}${t.paid&&t.paymentBank?' • Pago via '+t.paymentBank:''}</div></div><div><div class="amount">${t.type==='income'?'+':'-'} ${money(t.value)}</div><div class="status ${cls}">${status}</div></div>${actions?`<div class="row-actions">${(t.paymentReceipt||t.receipt)?`<button class="receipt-btn" onclick="openReceipt(${t.id})">🧾</button>`:''}<button class="icon-btn" onclick="editTransaction(${t.id})">✎</button><button class="icon-btn danger" onclick="deleteFullTransaction(${t.id})">🗑</button></div>`:''}</div>`;
+ const canSelect=actions&&t.type==='expense'&&!t.paid;
+ const selected=selectedPaymentIds.has(t.id);
+ const selectButton=canSelect?`<button class="select-payment-btn ${selected?'active':''}" onclick="event.stopPropagation();togglePaymentSelection(${t.id})" aria-label="${selected?'Desmarcar':'Selecionar'} ${t.title}">${selected?'✓':''}</button>`:'';
+ return `<div class="item ${selected?'selected-for-payment':''}">${selectButton}<div class="ico">${icons[t.category]||'🧾'}</div><div class="item-main" onclick="handleTransactionClick(${t.id})"><div class="item-title">${t.title}</div><div class="item-meta">${t.category}${t.person?' • '+t.person:''}${t.paid&&t.paymentBank?' • Pago via '+t.paymentBank:''}</div></div><div><div class="amount">${t.type==='income'?'+':'-'} ${money(t.value)}</div><div class="status ${cls}">${status}</div></div>${actions?`<div class="row-actions">${(t.paymentReceipt||t.receipt)?`<button class="receipt-btn" onclick="event.stopPropagation();openReceipt(${t.id})">🧾</button>`:''}<button class="icon-btn" onclick="event.stopPropagation();editTransaction(${t.id})">✎</button><button class="icon-btn danger" onclick="event.stopPropagation();deleteFullTransaction(${t.id})">🗑</button></div>`:''}</div>`;
 }
+function togglePaymentSelection(id){
+ const t=data.transactions.find(x=>x.id===id);
+ if(!t||t.type!=='expense'||t.paid)return;
+ if(selectedPaymentIds.has(id))selectedPaymentIds.delete(id);
+ else selectedPaymentIds.add(id);
+ renderTransactions();
+}
+
+function clearPaymentSelection(render=true){
+ selectedPaymentIds.clear();
+ updatePaymentSelectionBar();
+ if(render)renderTransactions();
+}
+
+function getSelectedPaymentItems(){
+ return [...selectedPaymentIds]
+   .map(id=>data.transactions.find(t=>t.id===id))
+   .filter(t=>t&&t.type==='expense'&&!t.paid);
+}
+
+function updatePaymentSelectionBar(){
+ for(const id of [...selectedPaymentIds]){
+   const t=data.transactions.find(x=>x.id===id);
+   if(!t||t.paid||t.type!=='expense')selectedPaymentIds.delete(id);
+ }
+ const items=getSelectedPaymentItems();
+ const total=items.reduce((sum,t)=>sum+Number(t.value||0),0);
+ paymentSelectionCount.textContent=`${items.length} ${items.length===1?'conta selecionada':'contas selecionadas'}`;
+ paymentSelectionTotal.textContent=money(total);
+ paymentSelectionBar.classList.toggle('show',items.length>0);
+}
+
+function openBatchPayment(){
+ const items=getSelectedPaymentItems();
+ if(!items.length){
+   alert('Selecione pelo menos uma conta pendente.');
+   return;
+ }
+ const closedItems=items.filter(t=>isMonthClosed(ym(t.date)));
+ if(closedItems.length){
+   alert('Uma ou mais contas pertencem a um mês fechado. Reabra o mês antes de pagar.');
+   return;
+ }
+ paymentMode='batch';
+ paymentTxId.value='';
+ paymentDate.value=new Date().toISOString().slice(0,10);
+ paymentBank.value='';
+ currentPaymentReceipt='';
+ const total=items.reduce((sum,t)=>sum+Number(t.value||0),0);
+ paymentAccountSummary.innerHTML=`
+   <div style="font-weight:900;font-size:16px">${items.length} ${items.length===1?'conta selecionada':'contas selecionadas'}</div>
+   <div class="batch-list">
+     ${items.map(t=>`<div class="batch-item"><span>${t.title}</span><strong>${money(t.value)}</strong></div>`).join('')}
+   </div>
+   <div class="kpi-line" style="margin-top:6px"><span>Total a pagar</span><strong>${money(total)}</strong></div>`;
+ updatePaymentReceiptPreview();
+ const payButton=paymentOverlay.querySelector('.primary');
+ if(payButton)payButton.textContent='Pagar contas selecionadas';
+ paymentOverlay.classList.add('show');
+}
+
 function openTransaction(){editId.value='';currentReceipt='';updateReceiptPreview();txModalTitle.textContent='Novo lançamento';tTitle.value='';tValue.value='';tDate.value=new Date().toISOString().slice(0,10);tType.value='expense';tPaid.value='false';tCategory.value='Água';tPerson.value='';tRepeat.value='none';tInstallments.value=1;tNote.value='';txOverlay.classList.add('show')}
 function closeTransaction(){txOverlay.classList.remove('show')}
 function editTransaction(id){const t=data.transactions.find(x=>x.id===id);if(!t)return;editId.value=id;txModalTitle.textContent='Editar lançamento';tTitle.value=t.title;tValue.value=String(t.value).replace('.',',');tDate.value=t.date;tType.value=t.type;tPaid.value=String(t.paid);tCategory.value=t.category;tPerson.value=t.person||'';tRepeat.value=t.repeat||'none';tInstallments.value=1;tNote.value=t.note||'';currentReceipt=t.receipt||'';updateReceiptPreview();txOverlay.classList.add('show')}
@@ -1033,6 +1205,7 @@ function deleteTransaction(id){
  }
 }
 function deleteFullTransaction(id){
+ selectedPaymentIds.delete(id);
  const t=data.transactions.find(x=>x.id===id);
  if(t&&!ensureMonthOpen(t.date))return;
  if(!t)return;
@@ -1077,18 +1250,22 @@ function openPayment(id){
  const t=data.transactions.find(x=>x.id===id);
  if(t&&!ensureMonthOpen(t.date))return;
  if(!t)return;
+ paymentMode='single';
  paymentTxId.value=id;
  paymentDate.value=new Date().toISOString().slice(0,10);
  paymentBank.value=t.paymentBank||'';
  currentPaymentReceipt=t.paymentReceipt||t.receipt||'';
  paymentAccountSummary.innerHTML=`<div style="font-weight:900">${t.title}</div><div class="item-meta">${t.category} • Vencimento ${new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR')}</div><div class="value sm" style="margin-top:8px">${money(t.value)}</div>`;
  updatePaymentReceiptPreview();
+ const payButton=paymentOverlay.querySelector('.primary');
+ if(payButton)payButton.textContent='Marcar como paga';
  paymentOverlay.classList.add('show');
 }
 function closePayment(){
  paymentOverlay.classList.remove('show');
  currentPaymentReceipt='';
  paymentReceiptInput.value='';
+ paymentMode='single';
 }
 function handlePaymentReceipt(event){
  const file=event.target.files&&event.target.files[0];
@@ -1135,13 +1312,42 @@ function openPaymentReceipt(){
  }
 }
 function confirmPayment(){
+ const paymentDateValue=paymentDate.value||new Date().toISOString().slice(0,10);
+ const bank=paymentBank.value.trim();
+
+ if(paymentMode==='batch'){
+   const items=getSelectedPaymentItems();
+   if(!items.length){
+     alert('Nenhuma conta selecionada.');
+     closePayment();
+     return;
+   }
+   const total=items.reduce((sum,t)=>sum+Number(t.value||0),0);
+   const message=`Confirmar o pagamento de ${items.length} ${items.length===1?'conta':'contas'} no total de ${money(total)}?`;
+   if(!confirm(message))return;
+
+   items.forEach(t=>{
+     t.paid=true;
+     t.paymentDate=paymentDateValue;
+     t.paymentBank=bank;
+     t.paymentReceipt=currentPaymentReceipt;
+   });
+
+   selectedPaymentIds.clear();
+   persist();
+   closePayment();
+   renderAll();
+   return;
+ }
+
  const id=Number(paymentTxId.value);
  const t=data.transactions.find(x=>x.id===id);
  if(!t)return;
  t.paid=true;
- t.paymentDate=paymentDate.value||new Date().toISOString().slice(0,10);
- t.paymentBank=paymentBank.value.trim();
+ t.paymentDate=paymentDateValue;
+ t.paymentBank=bank;
  t.paymentReceipt=currentPaymentReceipt;
+ selectedPaymentIds.delete(id);
  persist();
  closePayment();
  renderAll();
@@ -1354,7 +1560,7 @@ init();
 <input type="hidden" id="paymentTxId">
 <div id="paymentAccountSummary" class="card" style="box-shadow:none;background:#f7f3ef"></div>
 <div class="field"><label>Data do pagamento</label><input id="paymentDate" type="date"></div>
-<div class="field"><label>Banco de pagamento (opcional)</label><input id="paymentBank" placeholder="Ex.: Nubank, Itaú, Caixa"></div>
+<div class="field"><label>Banco de pagamento (opcional)</label><input id="paymentBank" placeholder="Ex.: Nubank, Itaú, Caixa"></div><div class="note" style="margin-top:8px">No pagamento em grupo, a mesma data, banco e comprovante serão aplicados a todas as contas selecionadas.</div>
 <div class="field">
 <label>Comprovante (opcional)</label>
 <div class="attachment-box">
