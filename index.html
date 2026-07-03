@@ -181,8 +181,8 @@ body.dark .sheet{background:#1f1f1f}
 .payment-selection-bar{
   position:fixed;
   left:50%;
-  bottom:calc(78px + env(safe-area-inset-bottom));
-  transform:translateX(-50%) translateY(130%);
+  bottom:calc(88px + env(safe-area-inset-bottom));
+  transform:translateX(-50%);
   width:min(500px,calc(100% - 20px));
   z-index:14;
   background:#211e1a;
@@ -190,10 +190,10 @@ body.dark .sheet{background:#1f1f1f}
   border-radius:20px;
   padding:13px 14px;
   box-shadow:0 16px 38px rgba(0,0,0,.28);
-  transition:transform .2s ease;
+  display:none;
 }
 .payment-selection-bar.show{
-  transform:translateX(-50%) translateY(0);
+  display:block;
 }
 .payment-selection-top{
   display:flex;
@@ -1142,6 +1142,7 @@ function updatePaymentSelectionBar(){
  paymentSelectionCount.textContent=`${items.length} ${items.length===1?'conta selecionada':'contas selecionadas'}`;
  paymentSelectionTotal.textContent=money(total);
  paymentSelectionBar.classList.toggle('show',items.length>0);
+ document.body.style.paddingBottom=items.length>0?'150px':'';
 }
 
 function openBatchPayment(){
