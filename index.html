@@ -155,6 +155,7 @@ body.dark .sheet{background:#1f1f1f}
 .notification-state{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.45}
 .notification-button{width:100%;border:0;border-radius:15px;padding:14px;background:#5b7fc4;color:#fff;font-weight:900;margin-top:12px}
 .notification-button:disabled{opacity:.55}
+.undo-toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(488px,calc(100% - 24px));display:none;align-items:center;justify-content:space-between;gap:10px;background:#211e1a;color:#fff;border-radius:15px;padding:11px 14px;z-index:42;box-shadow:var(--shadow);font-size:13px}.undo-toast.show{display:flex}.undo-toast button{border:0;background:#fff;color:#211e1a;border-radius:10px;padding:9px 12px;font-weight:850}
 
 /* Seleção de contas para pagamento em grupo */
 .item.selected-for-payment{
@@ -311,7 +312,7 @@ body.dark .select-payment-btn.active{background:var(--blue)}
   <button class="quick-action" onclick="openTransaction()"><span>＋</span>Adicionar</button>
   <button class="quick-action" onclick="showScreen('transactions');dateQuickFilter.value='today';renderTransactions()"><span>📅</span>Hoje</button>
   <button class="quick-action" onclick="showScreen('transactions');statusFilter.value='late';renderTransactions()"><span>⚠️</span>Vencidas</button>
-  <button class="quick-action" onclick="showScreen('reports')"><span>📈</span>Relatórios</button>
+  <button class="quick-action" onclick="openInstallmentOverview()"><span>▤</span>Parcelas</button>
 </div>
 
 <div id="financialHealth"></div>
@@ -389,7 +390,7 @@ body.dark .select-payment-btn.active{background:var(--blue)}
 </div>
 <div id="closedMonthBanner"></div>
 <div id="filterSummary" class="card summary-card"></div>
-<div class="section-head"><h2>Lançamentos</h2><button class="text-btn" onclick="resetFilters();renderTransactions()">Limpar filtros</button></div>
+<div class="section-head"><h2>Lançamentos</h2><div><button class="text-btn" onclick="openInstallmentOverview()">Minhas parcelas</button><button class="text-btn" onclick="resetFilters();renderTransactions()">Limpar filtros</button></div></div>
 <div class="note" style="margin:-4px 2px 12px">Em uma conta parcelada, use Mais opções para adiar as parcelas restantes ou excluir somente a escolhida.</div>
 <div id="txList" class="list"></div>
 </section>
@@ -411,6 +412,8 @@ body.dark .select-payment-btn.active{background:var(--blue)}
 <div class="kpi-line"><span>Pendente</span><strong id="rPending">R$ 0,00</strong></div>
 <div class="kpi-line"><span>Saldo do mês</span><strong id="rBalance">R$ 0,00</strong></div>
 </div>
+<div class="section-head"><h2>Calendário do dinheiro</h2></div>
+<div class="card"><div class="note">Entradas cadastradas e contas no dia do vencimento. O acumulado começa em zero a cada mês: não é o saldo da sua conta bancária.</div><div id="cashflowCalendarList"></div></div>
 <div class="section-head"><h2>Gastos por categoria</h2></div>
 <div id="categoryChart" class="card"></div>
 <div class="section-head"><h2>Comparação mensal</h2></div>
@@ -477,12 +480,28 @@ body.dark .select-payment-btn.active{background:var(--blue)}
 <button onclick="openFiltered('late')">⚠<br>Vencidas</button>
 <button data-screen="reports" onclick="showScreen('reports')">▥<br>Relatórios</button>
 </nav>
+<div id="undoToast" class="undo-toast" role="status"><span id="undoToastMessage"></span><button onclick="undoLastTransactionAction()">Desfazer</button></div>
 
 <div id="txActionsOverlay" class="overlay"><div class="sheet">
   <h2>O que deseja fazer?</h2>
   <div id="txActionSummary" class="card" style="box-shadow:none;background:#f7f3ef"></div>
   <div id="txActionButtons"></div>
   <button class="secondary" onclick="closeTransactionActions()">Cancelar</button>
+</div></div>
+
+<div id="installmentsOverlay" class="overlay"><div class="sheet">
+ <h2 id="installmentsTitle">Minhas parcelas</h2>
+ <div id="installmentsList"></div>
+ <button class="secondary" onclick="installmentsOverlay.classList.remove('show')">Fechar</button>
+</div></div>
+<div id="installmentEditOverlay" class="overlay"><div class="sheet">
+ <h2>Editar parcelas pendentes</h2>
+ <input type="hidden" id="installmentEditId">
+ <p class="note">Altera o valor e o vencimento desta parcela em diante. As já pagas não mudam.</p>
+ <div class="two"><div class="field"><label>Novo valor de cada parcela</label><input id="installmentEditValue" inputmode="decimal"></div>
+ <div class="field"><label>Dia do vencimento</label><input id="installmentEditDay" type="number" min="1" max="31"></div></div>
+ <button class="primary" onclick="saveInstallmentEdit()">Revisar e salvar</button>
+ <button class="secondary" onclick="installmentEditOverlay.classList.remove('show')">Cancelar</button>
 </div></div>
 
 <div id="txOverlay" class="overlay"><div class="sheet">
@@ -730,6 +749,8 @@ const firestore = firebase.firestore();
 const familyDoc = firestore.collection('families').doc('principal');
 let firebaseUser = null;
 let cloudUnsubscribe = null;
+const cloudClientId=`${Date.now()}-${Math.random()}`;
+let cloudConflict=false;
 let applyingCloudData = false;
 let cloudSaveTimer = null;
 
@@ -756,9 +777,19 @@ const today=()=>{
 };
 const parseMoney=s=>parseFloat((s||'').replace(/\./g,'').replace(',','.'))||0;
 function persist(){
- localStorage.setItem(DB,JSON.stringify(data));
+ try{localStorage.setItem(DB,JSON.stringify(data))}
+ catch(err){
+   const previous=localStorage.getItem(DB);
+   if(previous)data=JSON.parse(previous);
+   if(typeof lastTransactionAction!=='undefined')lastTransactionAction=null;
+   if(typeof undoToast!=='undefined')undoToast.classList.remove('show');
+   alert('Não foi possível salvar: o armazenamento deste aparelho pode estar cheio. A última alteração não foi mantida. Faça um backup e libere espaço antes de tentar novamente.');
+   if(previous)renderAll();
+   return false;
+ }
  checkStorage();
  if(firebaseUser&&!applyingCloudData)scheduleCloudSave();
+ return true;
 }
 function cloudSafeData(source){
  const copy=JSON.parse(JSON.stringify(source));
@@ -767,11 +798,13 @@ function cloudSafeData(source){
    // Comprovantes continuam locais até o Storage ser ativado.
    delete c.receipt;
    delete c.paymentReceipt;
+   if(Array.isArray(c.paymentHistory))c.paymentHistory=c.paymentHistory.map(({receipt,...payment})=>payment);
    return c;
  });
  copy.cloudMeta={
    updatedAt:new Date().toISOString(),
-   updatedBy:firebaseUser?firebaseUser.email:''
+   updatedBy:firebaseUser?firebaseUser.email:'',
+   updatedByClientId:cloudClientId
  };
  return copy;
 }
@@ -779,22 +812,54 @@ function mergeLocalReceipts(remote){
  const local=JSON.parse(localStorage.getItem(DB)||'null')||data;
  const receiptMap={};
  (local.transactions||[]).forEach(t=>{
-   if(t.receipt||t.paymentReceipt)receiptMap[t.id]={receipt:t.receipt||'',paymentReceipt:t.paymentReceipt||''};
+   if(t.receipt||t.paymentReceipt||t.paymentHistory?.length)receiptMap[t.id]={
+     receipt:t.receipt||'',paymentReceipt:t.paymentReceipt||'',
+     historyReceipts:new Map((t.paymentHistory||[]).map(entry=>[entry.id,entry.receipt||'']))
+   };
  });
- remote.transactions=(remote.transactions||[]).map(t=>({...t,...(receiptMap[t.id]||{})}));
+ remote.transactions=(remote.transactions||[]).map(t=>{
+   const saved=receiptMap[t.id];if(!saved)return t;
+   return {...t,receipt:saved.receipt,paymentReceipt:saved.paymentReceipt,
+     paymentHistory:(t.paymentHistory||[]).map(entry=>({...entry,receipt:saved.historyReceipts.get(entry.id)||''}))};
+ });
  return remote;
+}
+function applyIncomingCloud(remote){
+ applyingCloudData=true;
+ try{
+   const incoming=mergeLocalReceipts(remote);
+   if(!incoming.closedMonths)incoming.closedMonths={};
+   if(!incoming.customCategories)incoming.customCategories=[];
+   if(!incoming.settings)incoming.settings={people:[],favoriteCategories:[],savingsGoal:0,theme:'light'};
+   localStorage.setItem(DB,JSON.stringify(incoming));
+   data=incoming;
+ }catch(err){
+   showCloudStatus('Sem espaço para receber dados da nuvem');
+   alert('Não há espaço suficiente para atualizar os dados neste aparelho. Seus lançamentos locais foram mantidos. Libere espaço e reabra o app; não restaure backup por cima das contas atuais.');
+   return false;
+ }finally{applyingCloudData=false}
+ refreshCategoryOptions();applySettings();renderAll();
+ return true;
 }
 function showCloudStatus(text='Sincronizando…'){
  cloudStatus.textContent=text;
  cloudStatus.classList.add('show');
 }
 function hideCloudStatus(){cloudStatus.classList.remove('show')}
+function markCloudConflict(){
+ if(cloudConflict)return;
+ cloudConflict=true;
+ showCloudStatus('Pagamentos divergentes — sincronização pausada');
+ alert('Encontramos pagamentos divergentes entre aparelhos. Seus dados deste aparelho não foram substituídos e a sincronização foi pausada. Atualize o app nos outros aparelhos e confira os pagamentos antes de continuar. Não restaure backup por cima das contas atuais.');
+}
 function scheduleCloudSave(){
+ if(cloudConflict)return;
  clearTimeout(cloudSaveTimer);
  cloudSaveTimer=setTimeout(saveCloudData,500);
 }
 async function saveCloudData(){
- if(!firebaseUser)return;
+ if(!firebaseUser||cloudConflict)return;
+ if(hasPaymentConflict(data)){markCloudConflict();return}
  try{
    showCloudStatus('Salvando na nuvem…');
    await familyDoc.set(cloudSafeData(data),{merge:false});
@@ -810,33 +875,18 @@ async function startCloudSync(){
  showCloudStatus('Carregando dados…');
  const first=await familyDoc.get();
  if(!first.exists){
+   if(hasPaymentConflict(data)){markCloudConflict();return}
    await familyDoc.set(cloudSafeData(data));
  }else{
-   applyingCloudData=true;
-   data=mergeLocalReceipts(first.data());
-   if(!data.closedMonths)data.closedMonths={};
-   if(!data.customCategories)data.customCategories=[];
-   if(!data.settings)data.settings={people:[],favoriteCategories:[],savingsGoal:0,theme:'light'};
-   localStorage.setItem(DB,JSON.stringify(data));
-   applyingCloudData=false;
-   refreshCategoryOptions();
-   applySettings();
-   renderAll();
+   if(hasPaymentConflict(first.data())){markCloudConflict();return}
+   if(!applyIncomingCloud(first.data()))return;
  }
  cloudUnsubscribe=familyDoc.onSnapshot(snap=>{
-   if(!snap.exists||!firebaseUser)return;
+   if(!snap.exists||!firebaseUser||cloudConflict)return;
    const incoming=snap.data();
-   if(incoming.cloudMeta&&incoming.cloudMeta.updatedBy===firebaseUser.email)return;
-   applyingCloudData=true;
-   data=mergeLocalReceipts(incoming);
-   if(!data.closedMonths)data.closedMonths={};
-   if(!data.customCategories)data.customCategories=[];
-   if(!data.settings)data.settings={people:[],favoriteCategories:[],savingsGoal:0,theme:'light'};
-   localStorage.setItem(DB,JSON.stringify(data));
-   applyingCloudData=false;
-   refreshCategoryOptions();
-   applySettings();
-   renderAll();
+   if(hasPaymentConflict(incoming)){markCloudConflict();return}
+   if(incoming.cloudMeta?.updatedByClientId===cloudClientId)return;
+   if(!applyIncomingCloud(incoming))return;
    showCloudStatus('Dados atualizados');
    setTimeout(hideCloudStatus,1000);
  },err=>{
@@ -865,7 +915,7 @@ function generateRecurring(){
    for(let i=1;i<=23;i++){
      const date=dateInMonth(t.date,i,t.dueDay||Number(t.date.slice(8,10)));
      if(!data.transactions.some(x=>x.seriesId===seriesId&&x.date===date)){
-       data.transactions.push({...t,id:Date.now()+i+Math.floor(Math.random()*1000),seriesId,date,paid:false,paymentBank:'',paymentDate:'',paymentReceipt:'',receipt:'',recurringGenerated:true});
+       data.transactions.push({...t,id:Date.now()+i+Math.floor(Math.random()*1000),seriesId,date,paid:false,paidAmount:0,paymentHistory:[],paymentBank:'',paymentDate:'',paymentReceipt:'',receipt:'',recurringGenerated:true});
      }
    }
  });
@@ -997,19 +1047,19 @@ function openReport(){showScreen('reports');}
 function filteredMonth(){return data.transactions.filter(t=>ym(t.date)===currentMonth())}
 function renderHome(){
  const tx=filteredMonth(),inc=tx.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0),exp=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+b.value,0);
- const pending=tx.filter(t=>t.type==='expense'&&!t.paid).reduce((a,b)=>a+b.value,0);
- const paid=tx.filter(t=>t.type==='expense'&&t.paid).reduce((a,b)=>a+b.value,0);
+ const pending=tx.filter(t=>t.type==='expense'&&!t.paid).reduce((a,b)=>a+remainingValue(b),0);
+ const paid=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+paidValue(b),0);
  const monthStart=currentMonth()+'-01';
  const previousOverdueItems=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&t.date<monthStart&&daysUntil(t.date)<0);
- const previousOverdue=previousOverdueItems.reduce((a,b)=>a+b.value,0);
+ const previousOverdue=previousOverdueItems.reduce((a,b)=>a+remainingValue(b),0);
  const generalPending=pending+previousOverdue;
- const upcomingAll=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)>=0).reduce((a,b)=>a+b.value,0);
+ const upcomingAll=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)>=0).reduce((a,b)=>a+remainingValue(b),0);
  kIncome.textContent=money(inc);kPending.textContent=money(pending);kPaid.textContent=money(paid);kPreviousOverdue.textContent=money(previousOverdue);kGeneralPending.textContent=money(generalPending);kUpcomingAll.textContent=money(upcomingAll);kBalance.textContent=money(inc-exp);kExpense.textContent=money(exp);heroIncome.textContent=money(inc);heroExpense.textContent=money(exp);heroMonth.textContent=new Date(currentMonth()+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'short'}).replace('.','');const h=new Date().getHours();greeting.textContent=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
  const overdue=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)<0).sort((a,b)=>a.date.localeCompare(b.date));
  const todayList=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)===0).sort((a,b)=>a.date.localeCompare(b.date));
  const next7=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)>0&&daysUntil(t.date)<=7).sort((a,b)=>a.date.localeCompare(b.date));
  const attention=[...overdue,...todayList,...next7].slice(0,6);
- const overdueValue=overdue.reduce((a,b)=>a+b.value,0),todayValue=todayList.reduce((a,b)=>a+b.value,0),next7Value=next7.reduce((a,b)=>a+b.value,0);
+ const overdueValue=overdue.reduce((a,b)=>a+remainingValue(b),0),todayValue=todayList.reduce((a,b)=>a+remainingValue(b),0),next7Value=next7.reduce((a,b)=>a+remainingValue(b),0);
  attentionSummary.innerHTML=`<div style="font-weight:900;font-size:16px;margin-bottom:6px">Resumo de vencimentos</div>
  ${previousOverdueItems.length?`<div style="padding:10px 12px;margin-bottom:8px;border-radius:13px;background:#f7e9e9;color:var(--danger);font-weight:850;cursor:pointer" onclick="openFiltered('previousOverdue')">⚠️ ${previousOverdueItems.length} conta(s) vencida(s) de meses anteriores — ${money(previousOverdue)}</div>`:''}
  <div class="kpi-line" onclick="openFiltered('late')" style="cursor:pointer"><span>🔴 Vencidas</span><strong style="color:var(--danger)">${overdue.length} • ${money(overdueValue)}</strong></div>
@@ -1047,8 +1097,8 @@ function renderTransactions(){
  if(tp!=='all')list=list.filter(t=>t.type===tp);
  if(cf!=='all')list=list.filter(t=>t.category===cf);
  if(bf)list=list.filter(t=>(t.paymentBank||'').toLowerCase().includes(bf));
- if(rf==='with')list=list.filter(t=>!!(t.paymentReceipt||t.receipt));
- if(rf==='without')list=list.filter(t=>!(t.paymentReceipt||t.receipt));
+ if(rf==='with')list=list.filter(t=>!!latestReceipt(t));
+ if(rf==='without')list=list.filter(t=>!latestReceipt(t));
 
  monthFilter.disabled=globalStatuses.includes(st);
  monthFilter.style.opacity=globalStatuses.includes(st)?'.55':'1';
@@ -1067,7 +1117,7 @@ function renderTransactions(){
  }
 
  list.sort((a,b)=>a.date.localeCompare(b.date));
- const totalExpense=list.filter(t=>t.type==='expense').reduce((a,b)=>a+b.value,0);
+ const totalExpense=expenseTotalShown(list);
  const totalIncome=list.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0);
  let summaryTitle='Total do filtro';
  if(st==='late')summaryTitle='Total das contas vencidas — todos os meses';
@@ -1111,11 +1161,12 @@ function toggleCustomDate(){
 }
 function itemHTML(t,actions){
  let d=daysUntil(t.date),status=t.paid?(t.type==='income'?'Recebido':'Pago'):t.type==='income'?'A receber':d<0?'Atrasado':d===0?'Vence hoje':d<=7?`Vence em ${d} dias`:new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR');
+ if(t.type==='expense'&&paidValue(t)>0&&!t.paid)status=`Parcial${d<0?' · atrasado':''} · Falta ${money(remainingValue(t))}`;
  let cls=t.paid?'ok':(t.type==='expense'&&d<0)?'late':d<=7?'soon':'';
  const canSelect=actions&&t.type==='expense'&&!t.paid;
  const selected=selectedPaymentIds.has(t.id);
  const selectButton=canSelect?`<button class="select-payment-btn ${selected?'active':''}" onclick="event.stopPropagation();togglePaymentSelection(${t.id})" aria-label="${selected?'Desmarcar':'Selecionar'} ${t.title}">${selected?'✓':''}</button>`:'';
- return `<div class="item ${selected?'selected-for-payment':''}">${selectButton}<div class="ico">${icons[t.category]||'🧾'}</div><div class="item-main" onclick="handleTransactionClick(${t.id})"><div class="item-title">${t.title}</div><div class="item-meta">${t.category}${t.person?' • '+t.person:''}${t.paid&&t.paymentBank?' • Pago via '+t.paymentBank:''}</div></div><div><div class="amount">${t.type==='income'?'+':'-'} ${money(t.value)}</div><div class="status ${cls}">${status}</div></div>${actions?`<div class="row-actions">${(t.paymentReceipt||t.receipt)?`<button class="receipt-btn" onclick="event.stopPropagation();openReceipt(${t.id})">🧾</button>`:''}<button class="icon-btn" aria-label="Editar" onclick="event.stopPropagation();editTransaction(${t.id})">✎</button><button class="icon-btn" aria-label="Mais opções" onclick="event.stopPropagation();openTransactionActions(${t.id})">⋯</button></div>`:''}</div>`;
+ return `<div class="item ${selected?'selected-for-payment':''}">${selectButton}<div class="ico">${icons[t.category]||'🧾'}</div><div class="item-main" onclick="handleTransactionClick(${t.id})"><div class="item-title">${t.title}</div><div class="item-meta">${t.category}${t.person?' • '+t.person:''}${t.paid&&t.paymentBank?' • Pago via '+t.paymentBank:''}</div></div><div><div class="amount">${t.type==='income'?'+':'-'} ${money(t.type==='expense'&&!t.paid?remainingValue(t):t.value)}</div><div class="status ${cls}">${status}</div></div>${actions?`<div class="row-actions">${latestReceipt(t)?`<button class="receipt-btn" onclick="event.stopPropagation();openReceipt(${t.id})">🧾</button>`:''}<button class="icon-btn" aria-label="Editar" onclick="event.stopPropagation();editTransaction(${t.id})">✎</button><button class="icon-btn" aria-label="Mais opções" onclick="event.stopPropagation();openTransactionActions(${t.id})">⋯</button></div>`:''}</div>`;
 }
 function togglePaymentSelection(id){
  const t=data.transactions.find(x=>x.id===id);
@@ -1143,7 +1194,7 @@ function updatePaymentSelectionBar(){
    if(!t||t.paid||t.type!=='expense')selectedPaymentIds.delete(id);
  }
  const items=getSelectedPaymentItems();
- const total=items.reduce((sum,t)=>sum+Number(t.value||0),0);
+ const total=items.reduce((sum,t)=>sum+remainingValue(t),0);
  paymentSelectionCount.textContent=`${items.length} ${items.length===1?'conta selecionada':'contas selecionadas'}`;
  paymentSelectionTotal.textContent=money(total);
  paymentSelectionBar.classList.toggle('show',items.length>0);
@@ -1163,15 +1214,16 @@ function openBatchPayment(){
  }
  paymentMode='batch';
  postponePaymentBtn.style.display='none';
+ paymentAmountWrap.style.display='none';undoLastPaymentBtn.style.display='none';paymentHistoryInfo.textContent='';
  paymentTxId.value='';
  paymentDate.value=new Date().toISOString().slice(0,10);
  paymentBank.value='';
  currentPaymentReceipt='';
- const total=items.reduce((sum,t)=>sum+Number(t.value||0),0);
+ const total=items.reduce((sum,t)=>sum+remainingValue(t),0);
  paymentAccountSummary.innerHTML=`
    <div style="font-weight:900;font-size:16px">${items.length} ${items.length===1?'conta selecionada':'contas selecionadas'}</div>
    <div class="batch-list">
-     ${items.map(t=>`<div class="batch-item"><span>${t.title}</span><strong>${money(t.value)}</strong></div>`).join('')}
+     ${items.map(t=>`<div class="batch-item"><span>${escapeHTML(t.title)}</span><strong>${money(remainingValue(t))}</strong></div>`).join('')}
    </div>
    <div class="kpi-line" style="margin-top:6px"><span>Total a pagar</span><strong>${money(total)}</strong></div>`;
  updatePaymentReceiptPreview();
@@ -1181,13 +1233,22 @@ function openBatchPayment(){
 }
 
 function openTransaction(){editId.value='';currentReceipt='';updateReceiptPreview();txModalTitle.textContent='Novo lançamento';tTitle.value='';tValue.value='';tDate.value=new Date().toISOString().slice(0,10);tType.value='expense';tPaid.value='false';tCategory.value='Água';tPerson.value='';tRepeat.value='none';tInstallments.value=1;tNote.value='';txOverlay.classList.add('show')}
+function duplicateTransaction(id){
+ const source=data.transactions.find(x=>x.id===id);if(!source)return;
+ const draft=duplicateDraft(source);
+ closeTransactionActions();closeDetails();openTransaction();
+ txModalTitle.textContent='Duplicar conta — revise antes de salvar';
+ tTitle.value=draft.title;tValue.value=String(draft.value).replace('.',',');tDate.value=draft.date;
+ tType.value=draft.type;tCategory.value=draft.category;tPerson.value=draft.person;tNote.value=draft.note;
+ tPaid.value='false';tRepeat.value='none';tInstallments.value=1;
+}
 function closeTransaction(){txOverlay.classList.remove('show')}
 function editTransaction(id){const t=data.transactions.find(x=>x.id===id);if(!t)return;editId.value=id;txModalTitle.textContent='Editar lançamento';tTitle.value=t.title;tValue.value=String(t.value).replace('.',',');tDate.value=t.date;tType.value=t.type;tPaid.value=String(t.paid);tCategory.value=t.category;tPerson.value=t.person||'';tRepeat.value=t.repeat||'none';tInstallments.value=1;tNote.value=t.note||'';currentReceipt=t.receipt||'';updateReceiptPreview();txOverlay.classList.add('show')}
 function saveTransaction(){
  if(!ensureMonthOpen(tDate.value))return;
  const value=parseMoney(tValue.value);if(!tTitle.value||!value||!tDate.value){alert('Preencha descrição, valor e data.');return}
  const id=Number(editId.value);
- if(id){const original=data.transactions.find(x=>x.id===id);if(!original||!ensureMonthOpen(original.date))return}
+ if(id){const original=data.transactions.find(x=>x.id===id);if(!original||!ensureMonthOpen(original.date)||!canEditRecordedPayment(original,value,tPaid.value==='true',tType.value))return}
  if(id){const i=data.transactions.findIndex(x=>x.id===id);data.transactions[i]={...data.transactions[i],title:tTitle.value,value,date:tDate.value,type:tType.value,paid:tPaid.value==='true',category:tCategory.value,person:tPerson.value,repeat:tRepeat.value,note:tNote.value,receipt:currentReceipt}}
  else{
    const n=Math.max(1,parseInt(tInstallments.value||1));
@@ -1208,6 +1269,140 @@ function transactionGroup(t){return t.groupId??t.seriesId??t.id}
 function relatedTransactions(t){
  return data.transactions.filter(x=>transactionGroup(x)===transactionGroup(t));
 }
+function duplicateDraft(t){
+ return {title:String(t.title||'').replace(/\s*\(\d+\/\d+\)$/,''),value:t.value,
+   date:dateInMonth(t.date,1,t.dueDay||Number(t.date.slice(8,10))),
+   type:t.type,category:t.category,person:t.person||'',note:t.note||'',
+   paid:false,repeat:'none',receipt:''};
+}
+function remainingValue(t){return t.paid?0:Math.max(0,Math.round((Number(t.value||0)-Number(t.paidAmount||0))*100)/100)}
+function hasPaymentConflict(source){
+ return (source.transactions||[]).some(t=>{
+   if(t.type&&t.type!=='expense')return false;
+   const value=Math.round(Number(t.value||0)*100),amount=Math.round(Number(t.paidAmount||0)*100);
+   const history=t.paymentHistory||[];
+   if(history.length&&Math.round(history.reduce((sum,p)=>sum+Number(p.amount||0),0)*100)!==amount)return true;
+   if(amount>value||amount>0&&Boolean(t.paid)!==(amount>=value))return true;
+   return false;
+ });
+}
+function latestReceipt(t){return [...(t.paymentHistory||[])].reverse().find(entry=>entry.receipt)?.receipt||t.paymentReceipt||t.receipt||''}
+function expenseTotalShown(list){return list.filter(t=>t.type==='expense').reduce((sum,t)=>sum+(t.paid?Number(t.value||0):remainingValue(t)),0)}
+function fmtDate(date){return new Date(date+'T12:00:00').toLocaleDateString('pt-BR')}
+function paidValue(t){return t.paid?Number(t.value||0):Math.max(0,Number(t.paidAmount||0))}
+function recordPayment(t,amount,date,bank,receipt){
+ if(!t||t.type!=='expense'||t.paid||!ensureMonthOpen(t.date))return false;
+ const cents=Math.round(Number(amount)*100),remaining=Math.round(remainingValue(t)*100);
+ if(!Number.isFinite(cents)||cents<=0||cents>remaining){alert('Informe um valor maior que zero e até o saldo pendente.');return false}
+ t.paidAmount=Math.round((paidValue(t)*100+cents))/100;
+ t.paid=t.paidAmount>=Number(t.value);
+ t.paymentDate=date;t.paymentBank=bank;
+ if(!Array.isArray(t.paymentHistory))t.paymentHistory=[];
+ t.paymentHistory.push({id:Date.now()+Math.random(),amount:cents/100,date,bank,receipt:receipt||''});
+ return true;
+}
+function rollbackPayment(t){
+ if(!t||!ensureMonthOpen(t.date))return false;
+ if(t.paymentHistory?.length){
+   t.paymentHistory.pop();
+   t.paidAmount=Math.round(t.paymentHistory.reduce((sum,x)=>sum+Number(x.amount||0),0)*100)/100;
+   t.paid=t.paidAmount>=Number(t.value);
+   const last=t.paymentHistory.at(-1);
+   t.paymentDate=last?.date||'';t.paymentBank=last?.bank||'';
+ }else if(t.paid||t.paidAmount){
+   t.paid=false;t.paidAmount=0;t.paymentBank='';t.paymentDate='';t.paymentReceipt='';
+ }else return false;
+ return true;
+}
+function canEditRecordedPayment(t,value,newPaid,newType){
+ if(paidValue(t)>0&&(Number(value)!==Number(t.value)||Boolean(newPaid)!==Boolean(t.paid)||newType!==t.type)){
+   alert('Esta conta já tem pagamento registrado. Para mudar valor, tipo ou status, desfaça os pagamentos primeiro.');return false;
+ }
+ return true;
+}
+function csvRows(){
+ return [['Tipo','Descrição','Categoria','Valor','Data','Status','Responsável','Observação','Pago até agora','Falta pagar'],
+   ...data.transactions.map(t=>[t.type,t.title,t.category,Number(t.value).toFixed(2),t.date,
+     t.paid?'Pago':t.type==='expense'&&paidValue(t)>0?'Parcial':'Pendente',t.person||'',t.note||'',
+     t.type==='expense'?paidValue(t).toFixed(2):'',t.type==='expense'?remainingValue(t).toFixed(2):''])];
+}
+function installmentSummary(id){
+ const t=data.transactions.find(x=>x.id===Number(id));if(!t)return null;
+ const rows=relatedTransactions(t).filter(x=>x.type==='expense').sort((a,b)=>a.date.localeCompare(b.date));
+ return {rows,total:rows.length,paid:rows.filter(x=>x.paid).length,pending:rows.filter(x=>!x.paid).length,
+   remaining:Math.round(rows.reduce((s,x)=>s+remainingValue(x),0)*100)/100,
+   finish:rows.reduce((last,x)=>x.date>last?x.date:last,'')};
+}
+function editableInstallmentStart(id){
+ const info=installmentSummary(id);if(!info)return null;
+ let lastProtected=-1;
+ info.rows.forEach((x,i)=>{if(x.paid||paidValue(x)>0)lastProtected=i});
+ return info.rows.slice(lastProtected+1).find(x=>!x.paid&&paidValue(x)===0)||null;
+}
+function cashflowCalendar(month){
+ const days=new Map();
+ data.transactions.filter(t=>t.date&&t.date.slice(0,7)===month&&['income','expense'].includes(t.type)).forEach(t=>{
+   if(!days.has(t.date))days.set(t.date,{date:t.date,income:0,expense:0,items:[]});
+   const day=days.get(t.date);day[t.type==='income'?'income':'expense']+=Number(t.value||0);day.items.push(t);
+ });
+ let running=0;
+ return [...days.values()].sort((a,b)=>a.date.localeCompare(b.date)).map(day=>{
+   day.running=Math.round((running+=day.income-day.expense)*100)/100;
+   return day;
+ });
+}
+function changeFutureInstallments(id,value,day){
+ const t=data.transactions.find(x=>x.id===Number(id));if(!t)return false;
+ value=Number(value);day=Number(day);
+ if(!Number.isFinite(value)||value<=0||!Number.isInteger(day)||day<1||day>31){alert('Informe valor e dia do vencimento válidos.');return false}
+ const future=relatedTransactions(t).filter(x=>x.date>=t.date).sort((a,b)=>a.date.localeCompare(b.date));
+ if(future.some(x=>x.paid)){alert('Há parcela paga entre as próximas. Edite apenas as ainda pendentes.');return false}
+ if(future.some(x=>paidValue(x)>0)){alert('Há parcela parcialmente paga entre as próximas. Comece a edição após essa parcela.');return false}
+ if(!future.length||future.some(x=>!ensureMonthOpen(x.date)||!ensureMonthOpen(dateInMonth(x.date,0,day))))return false;
+ if(!confirm(`Alterar ${future.length} ${future.length===1?'parcela pendente':'parcelas pendentes'} para ${money(value)} cada, todo dia ${day}? Parcelas já pagas não mudam.`))return false;
+ const before=future.map(x=>({...x}));
+ future.forEach(x=>{x.value=value;x.date=dateInMonth(x.date,0,day);x.dueDay=day});
+ rememberTransactionAction('edit',before,future.map(x=>({...x})));
+ persist();renderAll();return true;
+}
+function escapeHTML(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function openInstallmentOverview(){
+ const groups=new Map();
+ data.transactions.filter(x=>x.type==='expense').forEach(x=>{
+   const key=String(transactionGroup(x));if(!groups.has(key))groups.set(key,[]);groups.get(key).push(x);
+ });
+ const rows=[...groups.values()].filter(group=>group.length>1||/\(\d+\/\d+\)$/.test(group[0].title||''))
+   .sort((a,b)=>a[0].title.localeCompare(b[0].title,'pt-BR'));
+ installmentsTitle.textContent='Minhas parcelas';
+ installmentsList.innerHTML=rows.length?rows.map(group=>{
+   const first=group[0],info=installmentSummary(first.id);
+   const expected=Math.max(...group.map(x=>Number((x.title||'').match(/\(\d+\/(\d+)\)$/)?.[1]||0)));
+   return `<div class="card" style="margin-bottom:10px"><b>${escapeHTML((first.title||'').replace(/\s*\(\d+\/\d+\)$/,''))}</b><div class="note">${info.paid} pagas · ${info.pending} pendentes · Restam ${money(info.remaining)} · Até ${fmtDate(info.finish)}${expected>info.total?` · ${info.total} de ${expected} lançadas`:''}</div><button class="secondary" onclick="openInstallmentGroup(${Number(first.id)})">Ver parcelas</button></div>`;
+ }).join(''):'<p class="note">Nenhuma conta parcelada cadastrada. Parcelas apagadas anteriormente não aparecem aqui.</p>';
+ installmentsOverlay.classList.add('show');
+}
+function openInstallmentGroup(id){
+ const info=installmentSummary(id);if(!info)return;
+ installmentsTitle.textContent=(info.rows[0].title||'Parcelas').replace(/\s*\(\d+\/\d+\)$/,'');
+ const firstPending=editableInstallmentStart(id);
+ installmentsList.innerHTML=`<div class="note">${info.paid} pagas · ${info.pending} pendentes · Restam ${money(info.remaining)} · Término previsto: ${fmtDate(info.finish)}</div>`+
+   info.rows.map(x=>`<div class="card" style="margin:10px 0;box-shadow:none"><b>${escapeHTML(x.title)}</b><div class="note">${fmtDate(x.date)} · ${money(x.value)} · ${x.paid?'Pago':Number(x.paidAmount||0)>0?`Pago ${money(x.paidAmount)} · Restam ${money(remainingValue(x))}`:'Pendente'}</div></div>`).join('')+
+   (firstPending?`<button class="primary" onclick="openInstallmentEdit(${Number(firstPending.id)})">Editar próximas a partir de ${fmtDate(firstPending.date)}</button>`:'')+
+   `<button class="secondary" onclick="openInstallmentOverview()">Voltar às parcelas</button>`;
+ installmentsOverlay.classList.add('show');
+}
+function openInstallmentEdit(id){
+ const t=data.transactions.find(x=>x.id===Number(id));if(!t)return;
+ installmentEditId.value=id;installmentEditValue.value=String(t.value).replace('.',',');
+ installmentEditDay.value=t.dueDay||Number(t.date.slice(8,10));
+ installmentsOverlay.classList.remove('show');installmentEditOverlay.classList.add('show');
+}
+function saveInstallmentEdit(){
+ const id=Number(installmentEditId.value);
+ if(changeFutureInstallments(id,parseMoney(installmentEditValue.value),Number(installmentEditDay.value))){
+   installmentEditOverlay.classList.remove('show');openInstallmentGroup(id);
+ }
+}
 // Preserve o dia original ao passar por meses mais curtos.
 function dateInMonth(date, offset, dueDay){
  const [year,month]=date.split('-').map(Number);
@@ -1215,12 +1410,38 @@ function dateInMonth(date, offset, dueDay){
  return new Date(Date.UTC(year,month-1+offset,Math.min(dueDay,lastDay))).toISOString().slice(0,10);
 }
 function nextMonth(date, dueDay){return dateInMonth(date,1,dueDay)}
+let lastTransactionAction=null,undoActionTimer=null;
+function rememberTransactionAction(kind,originalRows,changedRows=[]){
+ lastTransactionAction={kind,originalRows:JSON.parse(JSON.stringify(originalRows)),changedRows:JSON.parse(JSON.stringify(changedRows))};
+ undoToastMessage.textContent=kind==='postpone'?'Parcelas adiadas.':kind==='edit'?'Parcelas alteradas.':'Conta excluída.';
+ undoToast.classList.add('show');
+ clearTimeout(undoActionTimer);
+ undoActionTimer=setTimeout(()=>{lastTransactionAction=null;undoToast.classList.remove('show')},60000);
+}
+function undoLastTransactionAction(){
+ const action=lastTransactionAction;if(!action)return;
+ if(action.originalRows.some(x=>!ensureMonthOpen(x.date)))return;
+ if(action.kind==='postpone'||action.kind==='edit'){
+   const changed=new Map(action.changedRows.map(x=>[x.id,x]));
+   const current=action.originalRows.map(x=>data.transactions.find(t=>t.id===x.id));
+   const paymentSnapshot=x=>JSON.stringify([x.paid,x.paidAmount,x.paymentHistory,x.paymentDate,x.paymentBank,x.paymentReceipt]);
+   if(current.some(x=>!x||x.date!==changed.get(x.id)?.date||x.value!==changed.get(x.id)?.value||paymentSnapshot(x)!==paymentSnapshot(changed.get(x.id))||!ensureMonthOpen(x.date))){alert('As parcelas ou os pagamentos mudaram depois desta ação. Confira antes de desfazer.');return}
+   current.forEach((x,i)=>{x.date=action.originalRows[i].date;x.value=action.originalRows[i].value;x.dueDay=action.originalRows[i].dueDay});
+ }else{
+   if(action.originalRows.some(x=>data.transactions.some(t=>t.id===x.id))){alert('Uma das contas já existe. Não foi possível desfazer.');return}
+   data.transactions.push(...action.originalRows);
+ }
+ lastTransactionAction=null;clearTimeout(undoActionTimer);undoToast.classList.remove('show');
+ persist();renderAll();
+}
 function closeTransactionActions(){txActionsOverlay.classList.remove('show')}
 function openTransactionActions(id){
  const t=data.transactions.find(x=>x.id===id);if(!t)return;
  const group=relatedTransactions(t),label=group.length>1?'parcela':'conta';
  txActionSummary.textContent=`${t.title} • ${money(t.value)} • vence ${new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR')}`;
  txActionButtons.innerHTML=`${!t.paid?`<button class="primary" onclick="postponeInstallments(${id})">Adiar parcelas restantes</button><p class="note">Move esta ${label} e as próximas em um mês; a data final também avança.</p>`:''}
+ <button class="secondary" onclick="duplicateTransaction(${id})">Duplicar para o próximo mês</button>
+ ${paidValue(t)>0?`<button class="secondary" onclick="closeTransactionActions();openDetails(${id})">Ver pagamentos e detalhes</button>`:''}
  <button class="secondary" onclick="deleteOneTransaction(${id})">Apagar só esta ${label}</button>
  ${group.length>1?`<button class="secondary danger-btn" onclick="deleteSeriesTransaction(${id})">Apagar toda a série</button>`:''}`;
  txActionsOverlay.classList.add('show');
@@ -1239,7 +1460,9 @@ function postponeInstallments(id){
  const last=moves[moves.length-1];
  const finish=new Date(last.newDate+'T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
  if(!confirm(`Adiar ${moves.length} ${moves.length===1?'parcela':'parcelas'} em um mês? O término passará para ${finish}. Nenhuma parcela será apagada.`))return;
+ const before=moves.map(({tx})=>({...tx}));
  moves.forEach(({tx,newDate})=>{tx.date=newDate});
+ rememberTransactionAction('postpone',before,moves.map(({tx})=>({...tx})));
  closeTransactionActions();persist();renderAll();
 }
 function deleteOneTransaction(id){
@@ -1247,6 +1470,7 @@ function deleteOneTransaction(id){
  if(!confirm('Apagar somente esta parcela? As demais continuarão no aplicativo.'))return;
  data.transactions=data.transactions.filter(x=>x.id!==id);
  selectedPaymentIds.delete(id);
+ rememberTransactionAction('delete',[t]);
  closeTransactionActions();persist();renderAll();
 }
 function deleteSeriesTransaction(id){
@@ -1257,6 +1481,7 @@ function deleteSeriesTransaction(id){
  const ids=new Set(related.map(x=>x.id));
  data.transactions=data.transactions.filter(x=>!ids.has(x.id));
  related.forEach(x=>selectedPaymentIds.delete(x.id));
+ rememberTransactionAction('delete',related);
  closeTransactionActions();persist();renderAll();
 }
 function renderReserve(){
@@ -1273,8 +1498,10 @@ function openBudget(){bValue.value='';budgetOverlay.classList.add('show')}
 function closeBudget(){budgetOverlay.classList.remove('show')}
 function saveBudget(){const v=parseMoney(bValue.value);if(!v){alert('Informe o limite.');return}data.budgets[bCategory.value]=v;persist();closeBudget();renderAll()}
 function renderReports(){
- const tx=filteredMonth(),inc=tx.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0),exp=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+b.value,0),paid=tx.filter(t=>t.paid&&t.type==='expense').reduce((a,b)=>a+b.value,0),pending=tx.filter(t=>!t.paid&&t.type==='expense').reduce((a,b)=>a+b.value,0);
+ const tx=filteredMonth(),inc=tx.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0),exp=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+b.value,0),paid=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+paidValue(b),0),pending=tx.filter(t=>!t.paid&&t.type==='expense').reduce((a,b)=>a+remainingValue(b),0);
  rIncome.textContent=money(inc);rExpense.textContent=money(exp);rPaid.textContent=money(paid);rPending.textContent=money(pending);rBalance.textContent=money(inc-exp);
+ const calendar=cashflowCalendar(currentMonth());
+ cashflowCalendarList.innerHTML=calendar.length?calendar.map(day=>`<div style="padding:13px 0;border-bottom:1px solid var(--line)"><strong>${fmtDate(day.date)}</strong><div class="note">${day.items.map(t=>`${t.type==='income'?'Entrada':'Vencimento'}: ${escapeHTML(t.title)} (${money(t.value)})`).join('<br>')}</div><div class="kpi-line"><span>Entra ${money(day.income)} · Vence ${money(day.expense)}</span><strong style="color:${day.running<0?'var(--danger)':'var(--green)'}">Acumulado ${money(day.running)}</strong></div></div>`).join(''):'<div class="empty">Nenhuma entrada ou conta cadastrada neste mês.</div>';
  const cats={};tx.filter(t=>t.type==='expense').forEach(t=>cats[t.category]=(cats[t.category]||0)+t.value);const max=Math.max(1,...Object.values(cats));
  categoryChart.innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div class="chart-row"><strong>${c}</strong><div class="bar"><span style="width:${v/max*100}%"></span></div><span>${money(v)}</span></div>`).join('')||'<div class="empty">Sem despesas no mês.</div>';
  const months=[];for(let i=5;i>=0;i--){let d=new Date();d.setMonth(d.getMonth()-i);let m=d.toISOString().slice(0,7),v=data.transactions.filter(t=>ym(t.date)===m&&t.type==='expense').reduce((a,b)=>a+b.value,0);months.push([d.toLocaleDateString('pt-BR',{month:'short'}),v])}const mm=Math.max(1,...months.map(x=>x[1]));
@@ -1291,14 +1518,18 @@ function openPayment(id){
  if(!t)return;
  paymentMode='single';
  postponePaymentBtn.style.display='block';
+ paymentAmountWrap.style.display='block';
+ paymentAmount.value=String(remainingValue(t)).replace('.',',');
+ undoLastPaymentBtn.style.display=t.paymentHistory?.length?'block':'none';
+ paymentHistoryInfo.textContent=paidValue(t)>0?`Já pago: ${money(paidValue(t))}. Falta: ${money(remainingValue(t))}.`:'Valor total pendente.';
  paymentTxId.value=id;
  paymentDate.value=new Date().toISOString().slice(0,10);
  paymentBank.value=t.paymentBank||'';
- currentPaymentReceipt=t.paymentReceipt||t.receipt||'';
- paymentAccountSummary.innerHTML=`<div style="font-weight:900">${t.title}</div><div class="item-meta">${t.category} • Vencimento ${new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR')}</div><div class="value sm" style="margin-top:8px">${money(t.value)}</div>`;
+ currentPaymentReceipt='';
+ paymentAccountSummary.innerHTML=`<div style="font-weight:900">${escapeHTML(t.title)}</div><div class="item-meta">${escapeHTML(t.category)} • Vencimento ${fmtDate(t.date)}</div><div class="value sm" style="margin-top:8px">Restam ${money(remainingValue(t))} de ${money(t.value)}</div>`;
  updatePaymentReceiptPreview();
  const payButton=paymentOverlay.querySelector('.primary');
- if(payButton)payButton.textContent='Marcar como paga';
+ if(payButton)payButton.textContent='Registrar pagamento';
  paymentOverlay.classList.add('show');
 }
 function closePayment(){
@@ -1362,16 +1593,12 @@ function confirmPayment(){
      closePayment();
      return;
    }
-   const total=items.reduce((sum,t)=>sum+Number(t.value||0),0);
+   if(items.some(t=>!ensureMonthOpen(t.date)))return;
+   const total=items.reduce((sum,t)=>sum+remainingValue(t),0);
    const message=`Confirmar o pagamento de ${items.length} ${items.length===1?'conta':'contas'} no total de ${money(total)}?`;
    if(!confirm(message))return;
 
-   items.forEach(t=>{
-     t.paid=true;
-     t.paymentDate=paymentDateValue;
-     t.paymentBank=bank;
-     t.paymentReceipt=currentPaymentReceipt;
-   });
+   items.forEach(t=>recordPayment(t,remainingValue(t),paymentDateValue,bank,currentPaymentReceipt));
 
    selectedPaymentIds.clear();
    persist();
@@ -1383,11 +1610,11 @@ function confirmPayment(){
  const id=Number(paymentTxId.value);
  const t=data.transactions.find(x=>x.id===id);
  if(!t)return;
- t.paid=true;
- t.paymentDate=paymentDateValue;
- t.paymentBank=bank;
- t.paymentReceipt=currentPaymentReceipt;
- selectedPaymentIds.delete(id);
+ const amount=parseMoney(paymentAmount.value),rest=remainingValue(t);
+ if(!Number.isFinite(amount)||amount<=0||Math.round(amount*100)>Math.round(rest*100)){alert('Informe um valor maior que zero e até o saldo pendente.');return}
+ if(amount<rest&&!confirm(`Registrar pagamento parcial de ${money(amount)}? Permanecerão ${money(Math.round((rest-amount)*100)/100)} pendentes nesta conta.`))return;
+ if(!recordPayment(t,amount,paymentDateValue,bank,currentPaymentReceipt))return;
+ if(t.paid)selectedPaymentIds.delete(id);
  persist();
  closePayment();
  renderAll();
@@ -1439,12 +1666,18 @@ function openCurrentReceipt(){
 }
 function openReceipt(id){
  const t=data.transactions.find(x=>x.id===id);
- const receipt=t&&(t.paymentReceipt||t.receipt);
+ const receipt=t&&latestReceipt(t);
  if(receipt){
    currentViewedReceipt=receipt;
    receiptViewerImg.src=receipt;
    receiptViewerOverlay.classList.add('show');
  }
+}
+function openPaymentHistoryReceipt(id,paymentId){
+ const t=data.transactions.find(x=>x.id===id);
+ const receipt=t?.paymentHistory?.find(x=>x.id===paymentId)?.receipt;
+ if(!receipt)return;
+ closeDetails();currentViewedReceipt=receipt;receiptViewerImg.src=receipt;receiptViewerOverlay.classList.add('show');
 }
 function closeReceiptViewer(){receiptViewerOverlay.classList.remove('show')}
 
@@ -1457,21 +1690,25 @@ function downloadCurrentReceipt(){
 function openDetails(id){
  const t=data.transactions.find(x=>x.id===id);
  if(!t)return;
- const receipt=t.paymentReceipt||t.receipt;
+ const receipt=latestReceipt(t);
  detailContent.innerHTML=`
- <div style="font-size:19px;font-weight:900;margin-bottom:8px">${t.title}</div>
+ <div style="font-size:19px;font-weight:900;margin-bottom:8px">${escapeHTML(t.title)}</div>
  <div class="detail-line"><span>Tipo</span><strong>${t.type==='income'?'Receita':'Despesa'}</strong></div>
  <div class="detail-line"><span>Valor</span><strong>${money(t.value)}</strong></div>
- <div class="detail-line"><span>Categoria</span><strong>${t.category}</strong></div>
+ <div class="detail-line"><span>Categoria</span><strong>${escapeHTML(t.category)}</strong></div>
  <div class="detail-line"><span>Vencimento</span><strong>${new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR')}</strong></div>
- <div class="detail-line"><span>Status</span><strong>${t.paid?(t.type==='income'?'Recebido':'Pago'):'Pendente'}</strong></div>
+ <div class="detail-line"><span>Status</span><strong>${t.paid?(t.type==='income'?'Recebido':'Pago'):paidValue(t)>0?'Parcial':'Pendente'}</strong></div>
+ ${t.type==='expense'?`<div class="detail-line"><span>Já pago</span><strong>${money(paidValue(t))}</strong></div><div class="detail-line"><span>Falta pagar</span><strong>${money(remainingValue(t))}</strong></div>`:''}
  ${t.paymentDate?`<div class="detail-line"><span>Data do pagamento</span><strong>${new Date(t.paymentDate+'T12:00:00').toLocaleDateString('pt-BR')}</strong></div>`:''}
- ${t.paymentBank?`<div class="detail-line"><span>Banco</span><strong>${t.paymentBank}</strong></div>`:''}
- ${t.person?`<div class="detail-line"><span>Responsável</span><strong>${t.person}</strong></div>`:''}
- ${t.note?`<div class="detail-line"><span>Observação</span><strong>${t.note}</strong></div>`:''}`;
+ ${t.paymentBank?`<div class="detail-line"><span>Banco</span><strong>${escapeHTML(t.paymentBank)}</strong></div>`:''}
+ ${t.person?`<div class="detail-line"><span>Responsável</span><strong>${escapeHTML(t.person)}</strong></div>`:''}
+ ${t.note?`<div class="detail-line"><span>Observação</span><strong>${escapeHTML(t.note)}</strong></div>`:''}
+ ${t.paymentHistory?.length?`<h3>Pagamentos registrados</h3>${t.paymentHistory.map(p=>`<div class="detail-line"><span>${fmtDate(p.date)} · ${escapeHTML(p.bank||'Sem banco')}</span><strong>${money(p.amount)}</strong>${p.receipt?`<button class="text-btn" onclick="openPaymentHistoryReceipt(${Number(t.id)},${Number(p.id)})">Comprovante</button>`:''}</div>`).join('')}`:''}`;
  detailActions.innerHTML=`
  ${receipt?`<button class="primary" onclick="closeDetails();openReceipt(${t.id})">Abrir comprovante</button>`:''}
- ${t.type==='expense'&&t.paid?`<button class="secondary" onclick="undoPayment(${t.id})">Desfazer pagamento</button>`:''}
+ ${t.type==='expense'&&!t.paid?`<button class="secondary" onclick="closeDetails();openPayment(${t.id})">Registrar pagamento</button>`:''}
+ ${t.type==='expense'&&paidValue(t)>0?`<button class="secondary" onclick="undoPayment(${t.id})">Desfazer último pagamento</button>`:''}
+ <button class="secondary" onclick="closeDetails();duplicateTransaction(${t.id})">Duplicar para o próximo mês</button>
  <button class="secondary" onclick="closeDetails();editTransaction(${t.id})">Editar lançamento</button>`;
  detailOverlay.classList.add('show');
 }
@@ -1479,9 +1716,9 @@ function closeDetails(){detailOverlay.classList.remove('show')}
 function undoPayment(id){
  const t=data.transactions.find(x=>x.id===id);
  if(!t||!ensureMonthOpen(t.date))return;
- if(confirm('Deseja desfazer o pagamento desta conta?')){
-   t.paid=false;t.paymentBank='';t.paymentDate='';t.paymentReceipt='';
-   closeDetails();persist();renderAll();
+ if(confirm('Desfazer o último pagamento registrado nesta conta?')){
+   if(!rollbackPayment(t))return;
+   closeDetails();closePayment();persist();renderAll();
  }
 }
 function renderCloseMonth(){
@@ -1588,7 +1825,7 @@ function applySettings(){
 }
 
 function exportCSV(){
- const rows=[['Tipo','Descrição','Categoria','Valor','Data','Status','Responsável','Observação'],...data.transactions.map(t=>[t.type,t.title,t.category,t.value.toFixed(2),t.date,t.paid?'Pago':'Pendente',t.person||'',t.note||''])];
+ const rows=csvRows();
  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='relatorio-nossa-familia.csv';a.click();URL.revokeObjectURL(url)
 }
@@ -1599,6 +1836,8 @@ init();
 <h2>Confirmar pagamento</h2>
 <input type="hidden" id="paymentTxId">
 <div id="paymentAccountSummary" class="card" style="box-shadow:none;background:#f7f3ef"></div>
+<div id="paymentAmountWrap" class="field"><label>Valor que está pagando agora</label><input id="paymentAmount" inputmode="decimal" placeholder="0,00"><div class="note">Pode pagar uma parte. O restante continua pendente.</div></div>
+<div id="paymentHistoryInfo" class="note"></div>
 <div class="field"><label>Data do pagamento</label><input id="paymentDate" type="date"></div>
 <div class="field"><label>Banco de pagamento (opcional)</label><input id="paymentBank" placeholder="Ex.: Nubank, Itaú, Caixa"></div><div class="note" style="margin-top:8px">No pagamento em grupo, a mesma data, banco e comprovante serão aplicados a todas as contas selecionadas.</div>
 <div class="field">
@@ -1616,6 +1855,7 @@ init();
 </div>
 </div>
 <button class="primary" onclick="confirmPayment()">Marcar como paga</button>
+<button id="undoLastPaymentBtn" class="secondary" onclick="undoPayment(Number(paymentTxId.value))" style="display:none">Desfazer último pagamento</button>
 <button id="postponePaymentBtn" class="secondary" onclick="closePayment();openTransactionActions(Number(paymentTxId.value))">Adiar ou ajustar parcelas</button>
 <button class="secondary" onclick="closePayment()">Cancelar</button>
 </div></div>
