@@ -156,6 +156,7 @@ body.dark .sheet{background:#1f1f1f}
 .notification-button{width:100%;border:0;border-radius:15px;padding:14px;background:#5b7fc4;color:#fff;font-weight:900;margin-top:12px}
 .notification-button:disabled{opacity:.55}
 .undo-toast{position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(488px,calc(100% - 24px));display:none;align-items:center;justify-content:space-between;gap:10px;background:#211e1a;color:#fff;border-radius:15px;padding:11px 14px;z-index:42;box-shadow:var(--shadow);font-size:13px}.undo-toast.show{display:flex}.undo-toast button{border:0;background:#fff;color:#211e1a;border-radius:10px;padding:9px 12px;font-weight:850}
+.undo-toast .undo-dismiss{background:transparent;color:#fff;min-width:44px;min-height:44px;padding:7px;font-size:20px;line-height:1}
 
 /* Seleção de contas para pagamento em grupo */
 .item.selected-for-payment{
@@ -391,7 +392,7 @@ body.dark .select-payment-btn.active{background:var(--blue)}
 <div id="closedMonthBanner"></div>
 <div id="filterSummary" class="card summary-card"></div>
 <div class="section-head"><h2>Lançamentos</h2><div><button class="text-btn" onclick="openInstallmentOverview()">Minhas parcelas</button><button class="text-btn" onclick="resetFilters();renderTransactions()">Limpar filtros</button></div></div>
-<div class="note" style="margin:-4px 2px 12px">Em uma conta parcelada, use Mais opções para adiar as parcelas restantes ou excluir somente a escolhida.</div>
+<div class="note" style="margin:-4px 2px 12px">Para cancelar parcelas não pagas ou apagar toda a série, toque em Minhas parcelas e depois Ver parcelas.</div>
 <div id="txList" class="list"></div>
 </section>
 
@@ -480,7 +481,7 @@ body.dark .select-payment-btn.active{background:var(--blue)}
 <button onclick="openFiltered('late')">⚠<br>Vencidas</button>
 <button data-screen="reports" onclick="showScreen('reports')">▥<br>Relatórios</button>
 </nav>
-<div id="undoToast" class="undo-toast" role="status"><span id="undoToastMessage"></span><button onclick="undoLastTransactionAction()">Desfazer</button></div>
+<div id="undoToast" class="undo-toast" role="status"><span id="undoToastMessage"></span><button onclick="undoLastTransactionAction()">Desfazer</button><button class="undo-dismiss" aria-label="Fechar aviso" onclick="dismissUndoToast()">×</button></div>
 
 <div id="txActionsOverlay" class="overlay"><div class="sheet">
   <h2>O que deseja fazer?</h2>
@@ -991,6 +992,7 @@ firebaseAuth.onAuthStateChanged(async user=>{
 
 function init(){
  refreshCategoryOptions();
+ registerUndoToastLifecycle();
  
  const now=new Date(); let opts=[];
  for(let i=-60;i<=120;i++){
@@ -1418,15 +1420,28 @@ function dateInMonth(date, offset, dueDay){
  return new Date(Date.UTC(year,month-1+offset,Math.min(dueDay,lastDay))).toISOString().slice(0,10);
 }
 function nextMonth(date, dueDay){return dateInMonth(date,1,dueDay)}
-let lastTransactionAction=null,undoActionTimer=null;
+let lastTransactionAction=null,undoActionTimer=null,undoActionExpiresAt=0;
+function registerUndoToastLifecycle(){
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)expireUndoActionIfNeeded()});
+ window.addEventListener('pageshow',()=>expireUndoActionIfNeeded());
+}
+function dismissUndoToast(){
+ lastTransactionAction=null;undoActionExpiresAt=0;clearTimeout(undoActionTimer);undoToast.classList.remove('show');
+}
+function expireUndoActionIfNeeded(now=Date.now()){
+ if(!lastTransactionAction||now<undoActionExpiresAt)return false;
+ dismissUndoToast();return true;
+}
 function rememberTransactionAction(kind,originalRows,changedRows=[]){
  lastTransactionAction={kind,originalRows:JSON.parse(JSON.stringify(originalRows)),changedRows:JSON.parse(JSON.stringify(changedRows))};
+ undoActionExpiresAt=Date.now()+60000;
  undoToastMessage.textContent=kind==='postpone'?'Parcelas adiadas.':kind==='edit'?'Parcelas alteradas.':'Conta excluída.';
  undoToast.classList.add('show');
  clearTimeout(undoActionTimer);
- undoActionTimer=setTimeout(()=>{lastTransactionAction=null;undoToast.classList.remove('show')},60000);
+ undoActionTimer=setTimeout(()=>expireUndoActionIfNeeded(),60000);
 }
 function undoLastTransactionAction(){
+ if(expireUndoActionIfNeeded())return;
  const action=lastTransactionAction;if(!action)return;
  if(action.originalRows.some(x=>!ensureMonthOpen(x.date)))return;
  if(action.kind==='postpone'||action.kind==='edit'){
@@ -1439,7 +1454,7 @@ function undoLastTransactionAction(){
    if(action.originalRows.some(x=>data.transactions.some(t=>t.id===x.id))){alert('Uma das contas já existe. Não foi possível desfazer.');return}
    data.transactions.push(...action.originalRows);
  }
- lastTransactionAction=null;clearTimeout(undoActionTimer);undoToast.classList.remove('show');
+ dismissUndoToast();
  persist();renderAll();
 }
 function closeTransactionActions(){txActionsOverlay.classList.remove('show')}
