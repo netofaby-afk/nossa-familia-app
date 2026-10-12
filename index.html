@@ -302,7 +302,7 @@ body.dark .select-payment-btn.active{background:var(--blue)}
   <div class="card kpi-card kpi-overdue" onclick="openFiltered('previousOverdue')"><div class="kpi-icon">⚠️</div><h3>Vencidas anteriores</h3><div id="kPreviousOverdue" class="value sm">R$ 0,00</div></div>
   <div class="card kpi-card kpi-general" onclick="openFiltered('generalPending')"><div class="kpi-icon">🧾</div><h3>Total pendente geral</h3><div id="kGeneralPending" class="value sm">R$ 0,00</div></div>
   <div class="card kpi-card kpi-income" onclick="openFiltered('income')"><div class="kpi-icon">↗</div><h3>Receitas do mês</h3><div id="kIncome" class="value sm">R$ 0,00</div></div>
-  <div class="card kpi-card kpi-reserve" onclick="showScreen('reserve')"><div class="kpi-icon">🛡️</div><h3>Reserva atual</h3><div id="kReserve" class="value sm">R$ 0,00</div></div>
+
   <div class="card kpi-card kpi-month" onclick="openFiltered('expense')"><div class="kpi-icon">📊</div><h3>Total de despesas</h3><div id="kExpense" class="value sm">R$ 0,00</div></div>
   <div class="card kpi-card kpi-remaining" onclick="openFiltered('upcomingAll')"><div class="kpi-icon">📆</div><h3>A vencer — visão geral</h3><div id="kUpcomingAll" class="value sm">R$ 0,00</div></div>
 </div>
@@ -389,8 +389,8 @@ body.dark .select-payment-btn.active{background:var(--blue)}
 </div>
 <div id="closedMonthBanner"></div>
 <div id="filterSummary" class="card summary-card"></div>
-<div class="section-head"><h2>Lançamentos</h2><div><button class="text-btn" onclick="resetFilters();renderTransactions()">Limpar filtros</button><button class="text-btn danger-btn" onclick="clearTransactions()">Apagar todos</button></div></div>
-<div class="note" style="margin:-4px 2px 12px">Ao tocar na lixeira de uma compra parcelada, todas as parcelas daquele lançamento serão apagadas juntas.</div>
+<div class="section-head"><h2>Lançamentos</h2><button class="text-btn" onclick="resetFilters();renderTransactions()">Limpar filtros</button></div>
+<div class="note" style="margin:-4px 2px 12px">Em uma conta parcelada, use Mais opções para adiar as parcelas restantes ou excluir somente a escolhida.</div>
 <div id="txList" class="list"></div>
 </section>
 
@@ -474,9 +474,16 @@ body.dark .select-payment-btn.active{background:var(--blue)}
 <button class="active" data-screen="home" onclick="showScreen('home')">⌂<br>Início</button>
 <button data-screen="transactions" onclick="showScreen('transactions')">▤<br>Contas</button>
 <div></div>
-<button data-screen="reserve" onclick="showScreen('reserve')">◉<br>Reserva</button>
+<button onclick="openFiltered('late')">⚠<br>Vencidas</button>
 <button data-screen="reports" onclick="showScreen('reports')">▥<br>Relatórios</button>
 </nav>
+
+<div id="txActionsOverlay" class="overlay"><div class="sheet">
+  <h2>O que deseja fazer?</h2>
+  <div id="txActionSummary" class="card" style="box-shadow:none;background:#f7f3ef"></div>
+  <div id="txActionButtons"></div>
+  <button class="secondary" onclick="closeTransactionActions()">Cancelar</button>
+</div></div>
 
 <div id="txOverlay" class="overlay"><div class="sheet">
 <h2 id="txModalTitle">Novo lançamento</h2>
@@ -856,8 +863,7 @@ function generateRecurring(){
    const seriesId=t.seriesId||t.groupId||t.id;
    t.seriesId=seriesId;t.recurringGenerated=true;
    for(let i=1;i<=23;i++){
-     let d=new Date(t.date+'T12:00:00');d.setMonth(d.getMonth()+i);
-     const date=d.toISOString().slice(0,10);
+     const date=dateInMonth(t.date,i,t.dueDay||Number(t.date.slice(8,10)));
      if(!data.transactions.some(x=>x.seriesId===seriesId&&x.date===date)){
        data.transactions.push({...t,id:Date.now()+i+Math.floor(Math.random()*1000),seriesId,date,paid:false,paymentBank:'',paymentDate:'',paymentReceipt:'',receipt:'',recurringGenerated:true});
      }
@@ -958,7 +964,7 @@ function changeBaseMonth(value){
  if(homeMonthFilter.value!==value)homeMonthFilter.value=value;
  renderAll();
 }
-function renderAll(){renderHome();renderTransactions();renderReserve();renderReports();renderCloseMonth();checkStorage()}
+function renderAll(){renderHome();renderTransactions();renderReports();renderCloseMonth();checkStorage()}
 function resetFilters(){
  search.value='';
  statusFilter.value='all';
@@ -998,8 +1004,7 @@ function renderHome(){
  const previousOverdue=previousOverdueItems.reduce((a,b)=>a+b.value,0);
  const generalPending=pending+previousOverdue;
  const upcomingAll=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)>=0).reduce((a,b)=>a+b.value,0);
- const reserve=data.reserve.reduce((a,r)=>a+(r.type==='in'?r.value:-r.value),0);
- kIncome.textContent=money(inc);kPending.textContent=money(pending);kPaid.textContent=money(paid);kPreviousOverdue.textContent=money(previousOverdue);kGeneralPending.textContent=money(generalPending);kUpcomingAll.textContent=money(upcomingAll);kReserve.textContent=money(reserve);kBalance.textContent=money(inc-exp);kExpense.textContent=money(exp);heroIncome.textContent=money(inc);heroExpense.textContent=money(exp);heroMonth.textContent=new Date(currentMonth()+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'short'}).replace('.','');const h=new Date().getHours();greeting.textContent=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
+ kIncome.textContent=money(inc);kPending.textContent=money(pending);kPaid.textContent=money(paid);kPreviousOverdue.textContent=money(previousOverdue);kGeneralPending.textContent=money(generalPending);kUpcomingAll.textContent=money(upcomingAll);kBalance.textContent=money(inc-exp);kExpense.textContent=money(exp);heroIncome.textContent=money(inc);heroExpense.textContent=money(exp);heroMonth.textContent=new Date(currentMonth()+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'short'}).replace('.','');const h=new Date().getHours();greeting.textContent=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
  const overdue=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)<0).sort((a,b)=>a.date.localeCompare(b.date));
  const todayList=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)===0).sort((a,b)=>a.date.localeCompare(b.date));
  const next7=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)>0&&daysUntil(t.date)<=7).sort((a,b)=>a.date.localeCompare(b.date));
@@ -1110,7 +1115,7 @@ function itemHTML(t,actions){
  const canSelect=actions&&t.type==='expense'&&!t.paid;
  const selected=selectedPaymentIds.has(t.id);
  const selectButton=canSelect?`<button class="select-payment-btn ${selected?'active':''}" onclick="event.stopPropagation();togglePaymentSelection(${t.id})" aria-label="${selected?'Desmarcar':'Selecionar'} ${t.title}">${selected?'✓':''}</button>`:'';
- return `<div class="item ${selected?'selected-for-payment':''}">${selectButton}<div class="ico">${icons[t.category]||'🧾'}</div><div class="item-main" onclick="handleTransactionClick(${t.id})"><div class="item-title">${t.title}</div><div class="item-meta">${t.category}${t.person?' • '+t.person:''}${t.paid&&t.paymentBank?' • Pago via '+t.paymentBank:''}</div></div><div><div class="amount">${t.type==='income'?'+':'-'} ${money(t.value)}</div><div class="status ${cls}">${status}</div></div>${actions?`<div class="row-actions">${(t.paymentReceipt||t.receipt)?`<button class="receipt-btn" onclick="event.stopPropagation();openReceipt(${t.id})">🧾</button>`:''}<button class="icon-btn" onclick="event.stopPropagation();editTransaction(${t.id})">✎</button><button class="icon-btn danger" onclick="event.stopPropagation();deleteFullTransaction(${t.id})">🗑</button></div>`:''}</div>`;
+ return `<div class="item ${selected?'selected-for-payment':''}">${selectButton}<div class="ico">${icons[t.category]||'🧾'}</div><div class="item-main" onclick="handleTransactionClick(${t.id})"><div class="item-title">${t.title}</div><div class="item-meta">${t.category}${t.person?' • '+t.person:''}${t.paid&&t.paymentBank?' • Pago via '+t.paymentBank:''}</div></div><div><div class="amount">${t.type==='income'?'+':'-'} ${money(t.value)}</div><div class="status ${cls}">${status}</div></div>${actions?`<div class="row-actions">${(t.paymentReceipt||t.receipt)?`<button class="receipt-btn" onclick="event.stopPropagation();openReceipt(${t.id})">🧾</button>`:''}<button class="icon-btn" aria-label="Editar" onclick="event.stopPropagation();editTransaction(${t.id})">✎</button><button class="icon-btn" aria-label="Mais opções" onclick="event.stopPropagation();openTransactionActions(${t.id})">⋯</button></div>`:''}</div>`;
 }
 function togglePaymentSelection(id){
  const t=data.transactions.find(x=>x.id===id);
@@ -1157,6 +1162,7 @@ function openBatchPayment(){
    return;
  }
  paymentMode='batch';
+ postponePaymentBtn.style.display='none';
  paymentTxId.value='';
  paymentDate.value=new Date().toISOString().slice(0,10);
  paymentBank.value='';
@@ -1181,12 +1187,13 @@ function saveTransaction(){
  if(!ensureMonthOpen(tDate.value))return;
  const value=parseMoney(tValue.value);if(!tTitle.value||!value||!tDate.value){alert('Preencha descrição, valor e data.');return}
  const id=Number(editId.value);
+ if(id){const original=data.transactions.find(x=>x.id===id);if(!original||!ensureMonthOpen(original.date))return}
  if(id){const i=data.transactions.findIndex(x=>x.id===id);data.transactions[i]={...data.transactions[i],title:tTitle.value,value,date:tDate.value,type:tType.value,paid:tPaid.value==='true',category:tCategory.value,person:tPerson.value,repeat:tRepeat.value,note:tNote.value,receipt:currentReceipt}}
  else{
    const n=Math.max(1,parseInt(tInstallments.value||1));
    const groupId=Date.now(),seriesId=tRepeat.value==='monthly'?groupId:null;
    const count=tRepeat.value==='monthly'&&n===1?24:n;
-   for(let i=0;i<count;i++){let d=new Date(tDate.value+'T12:00:00');d.setMonth(d.getMonth()+i);data.transactions.push({id:groupId+i,groupId,seriesId,title:n>1?`${tTitle.value} (${i+1}/${n})`:tTitle.value,value,date:d.toISOString().slice(0,10),type:tType.value,paid:i===0&&tPaid.value==='true',category:tCategory.value,person:tPerson.value,repeat:tRepeat.value,note:tNote.value,receipt:i===0?currentReceipt:'',recurringGenerated:tRepeat.value==='monthly'})}
+   for(let i=0;i<count;i++){data.transactions.push({id:groupId+i,groupId,seriesId,title:n>1?`${tTitle.value} (${i+1}/${n})`:tTitle.value,value,date:dateInMonth(tDate.value,i,Number(tDate.value.slice(8,10))),dueDay:Number(tDate.value.slice(8,10)),type:tType.value,paid:i===0&&tPaid.value==='true',category:tCategory.value,person:tPerson.value,repeat:tRepeat.value,note:tNote.value,receipt:i===0?currentReceipt:'',recurringGenerated:tRepeat.value==='monthly'})}
  }
  persist();closeTransaction();renderAll()
 }
@@ -1197,30 +1204,61 @@ function handleTransactionClick(id){
  openDetails(id);
 }
 function togglePaid(id){handleTransactionClick(id)}
-function deleteTransaction(id){
- const t=data.transactions.find(x=>x.id===id);
- if(!t)return;
- if(confirm('Apagar somente este item?')){
-   data.transactions=data.transactions.filter(x=>x.id!==id);
-   persist();renderAll();
- }
+function transactionGroup(t){return t.groupId??t.seriesId??t.id}
+function relatedTransactions(t){
+ return data.transactions.filter(x=>transactionGroup(x)===transactionGroup(t));
 }
-function deleteFullTransaction(id){
+// Preserve o dia original ao passar por meses mais curtos.
+function dateInMonth(date, offset, dueDay){
+ const [year,month]=date.split('-').map(Number);
+ const lastDay=new Date(Date.UTC(year,month+offset,0)).getUTCDate();
+ return new Date(Date.UTC(year,month-1+offset,Math.min(dueDay,lastDay))).toISOString().slice(0,10);
+}
+function nextMonth(date, dueDay){return dateInMonth(date,1,dueDay)}
+function closeTransactionActions(){txActionsOverlay.classList.remove('show')}
+function openTransactionActions(id){
+ const t=data.transactions.find(x=>x.id===id);if(!t)return;
+ const group=relatedTransactions(t),label=group.length>1?'parcela':'conta';
+ txActionSummary.textContent=`${t.title} • ${money(t.value)} • vence ${new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR')}`;
+ txActionButtons.innerHTML=`${!t.paid?`<button class="primary" onclick="postponeInstallments(${id})">Adiar parcelas restantes</button><p class="note">Move esta ${label} e as próximas em um mês; a data final também avança.</p>`:''}
+ <button class="secondary" onclick="deleteOneTransaction(${id})">Apagar só esta ${label}</button>
+ ${group.length>1?`<button class="secondary danger-btn" onclick="deleteSeriesTransaction(${id})">Apagar toda a série</button>`:''}`;
+ txActionsOverlay.classList.add('show');
+}
+function postponeInstallments(id){
+ const t=data.transactions.find(x=>x.id===id);if(!t)return;
+ if(t.paid){alert('Não é possível adiar uma parcela já paga.');return}
+ const group=relatedTransactions(t).sort((a,b)=>a.date.localeCompare(b.date));
+ const remaining=group.filter(x=>x.date>=t.date);
+ if(remaining.some(x=>x.paid)){
+   alert('Há uma parcela posterior já paga. Revise essa série antes de adiar as restantes.');return;
+ }
+ const dueDay=group.find(x=>x.dueDay)?.dueDay||Number(group[0].date.slice(8,10));
+ const moves=remaining.map(x=>({tx:x,newDate:nextMonth(x.date,dueDay)}));
+ if(moves.some(({tx,newDate})=>!ensureMonthOpen(tx.date)||!ensureMonthOpen(newDate)))return;
+ const last=moves[moves.length-1];
+ const finish=new Date(last.newDate+'T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+ if(!confirm(`Adiar ${moves.length} ${moves.length===1?'parcela':'parcelas'} em um mês? O término passará para ${finish}. Nenhuma parcela será apagada.`))return;
+ moves.forEach(({tx,newDate})=>{tx.date=newDate});
+ closeTransactionActions();persist();renderAll();
+}
+function deleteOneTransaction(id){
+ const t=data.transactions.find(x=>x.id===id);if(!t||!ensureMonthOpen(t.date))return;
+ if(!confirm('Apagar somente esta parcela? As demais continuarão no aplicativo.'))return;
+ data.transactions=data.transactions.filter(x=>x.id!==id);
  selectedPaymentIds.delete(id);
- const t=data.transactions.find(x=>x.id===id);
- if(t&&!ensureMonthOpen(t.date))return;
- if(!t)return;
- const gid=t.groupId||t.id;
- const related=data.transactions.filter(x=>(x.groupId||x.id)===gid);
- const msg=related.length>1
-   ? `Apagar o lançamento completo com todas as ${related.length} parcelas?`
-   : 'Apagar este lançamento completo?';
- if(confirm(msg)){
-   data.transactions=data.transactions.filter(x=>(x.groupId||x.id)!==gid);
-   persist();renderAll();
- }
+ closeTransactionActions();persist();renderAll();
 }
-function clearTransactions(){if(isMonthClosed(currentMonth())){alert('Este mês está fechado.');return}if(confirm('Apagar todos os lançamentos?')){data.transactions=[];persist();renderAll()}}
+function deleteSeriesTransaction(id){
+ const t=data.transactions.find(x=>x.id===id);if(!t)return;
+ const related=relatedTransactions(t);
+ if(related.some(x=>!ensureMonthOpen(x.date)))return;
+ if(!confirm(`Apagar todas as ${related.length} parcelas, inclusive as já pagas? Esta ação não pode ser desfeita.`))return;
+ const ids=new Set(related.map(x=>x.id));
+ data.transactions=data.transactions.filter(x=>!ids.has(x.id));
+ related.forEach(x=>selectedPaymentIds.delete(x.id));
+ closeTransactionActions();persist();renderAll();
+}
 function renderReserve(){
  const total=data.reserve.reduce((a,r)=>a+(r.type==='in'?r.value:-r.value),0);reserveTotal.textContent=money(total);reserveGoalText.textContent=money(data.reserveGoal);reserveBar.style.width=Math.min(100,total/data.reserveGoal*100)+'%';
  reserveList.innerHTML=[...data.reserve].reverse().map(r=>`<div class="item"><div class="ico">${r.type==='in'?'↗':'↘'}</div><div class="item-main"><div class="item-title">${r.desc}</div><div class="item-meta">${new Date(r.date).toLocaleDateString('pt-BR')}</div></div><div class="amount">${r.type==='in'?'+':'-'} ${money(r.value)}</div><button class="icon-btn danger" onclick="deleteReserve(${r.id})">🗑</button></div>`).join('')||'<div class="empty">Nenhuma movimentação.</div>';
@@ -1252,6 +1290,7 @@ function openPayment(id){
  if(t&&!ensureMonthOpen(t.date))return;
  if(!t)return;
  paymentMode='single';
+ postponePaymentBtn.style.display='block';
  paymentTxId.value=id;
  paymentDate.value=new Date().toISOString().slice(0,10);
  paymentBank.value=t.paymentBank||'';
@@ -1577,6 +1616,7 @@ init();
 </div>
 </div>
 <button class="primary" onclick="confirmPayment()">Marcar como paga</button>
+<button id="postponePaymentBtn" class="secondary" onclick="closePayment();openTransactionActions(Number(paymentTxId.value))">Adiar ou ajustar parcelas</button>
 <button class="secondary" onclick="closePayment()">Cancelar</button>
 </div></div>
 
