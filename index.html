@@ -1046,7 +1046,7 @@ function openReport(){showScreen('reports');}
 
 function filteredMonth(){return data.transactions.filter(t=>ym(t.date)===currentMonth())}
 function renderHome(){
- const tx=filteredMonth(),inc=tx.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0),exp=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+b.value,0);
+ const tx=filteredMonth(),inc=tx.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0),exp=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+totalDue(b),0);
  const pending=tx.filter(t=>t.type==='expense'&&!t.paid).reduce((a,b)=>a+remainingValue(b),0);
  const paid=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+paidValue(b),0);
  const monthStart=currentMonth()+'-01';
@@ -1080,7 +1080,7 @@ function renderFinancialHealth(income,expense,pending){
 
 function renderBudgets(){
  const month=filteredMonth(),cats=Object.keys(data.budgets);
- homeBudgets.innerHTML=cats.length?cats.map(c=>{let spent=month.filter(t=>t.type==='expense'&&t.category===c).reduce((a,b)=>a+b.value,0),limit=data.budgets[c],pct=Math.min(100,limit?spent/limit*100:0);return `<div class="card budget"><div class="budget-top"><strong>${c}</strong><span>${money(spent)} de ${money(limit)}</span></div><div class="progress"><span style="width:${pct}%"></span></div></div>`}).join(''):'<div class="empty">Nenhum orçamento definido.</div>';
+ homeBudgets.innerHTML=cats.length?cats.map(c=>{let spent=month.filter(t=>t.type==='expense'&&t.category===c).reduce((a,b)=>a+totalDue(b),0),limit=data.budgets[c],pct=Math.min(100,limit?spent/limit*100:0);return `<div class="card budget"><div class="budget-top"><strong>${c}</strong><span>${money(spent)} de ${money(limit)}</span></div><div class="progress"><span style="width:${pct}%"></span></div></div>`}).join(''):'<div class="empty">Nenhum orçamento definido.</div>';
 }
 function renderTransactions(){
  let q=(search.value||'').toLowerCase(),st=statusFilter.value,df=dateQuickFilter.value,tp=typeFilter.value,cf=categoryFilter.value,bf=(bankFilter.value||'').toLowerCase(),rf=receiptFilter.value;
@@ -1166,7 +1166,7 @@ function itemHTML(t,actions){
  const canSelect=actions&&t.type==='expense'&&!t.paid;
  const selected=selectedPaymentIds.has(t.id);
  const selectButton=canSelect?`<button class="select-payment-btn ${selected?'active':''}" onclick="event.stopPropagation();togglePaymentSelection(${t.id})" aria-label="${selected?'Desmarcar':'Selecionar'} ${t.title}">${selected?'✓':''}</button>`:'';
- return `<div class="item ${selected?'selected-for-payment':''}">${selectButton}<div class="ico">${icons[t.category]||'🧾'}</div><div class="item-main" onclick="handleTransactionClick(${t.id})"><div class="item-title">${t.title}</div><div class="item-meta">${t.category}${t.person?' • '+t.person:''}${t.paid&&t.paymentBank?' • Pago via '+t.paymentBank:''}</div></div><div><div class="amount">${t.type==='income'?'+':'-'} ${money(t.type==='expense'&&!t.paid?remainingValue(t):t.value)}</div><div class="status ${cls}">${status}</div></div>${actions?`<div class="row-actions">${latestReceipt(t)?`<button class="receipt-btn" onclick="event.stopPropagation();openReceipt(${t.id})">🧾</button>`:''}<button class="icon-btn" aria-label="Editar" onclick="event.stopPropagation();editTransaction(${t.id})">✎</button><button class="icon-btn" aria-label="Mais opções" onclick="event.stopPropagation();openTransactionActions(${t.id})">⋯</button></div>`:''}</div>`;
+ return `<div class="item ${selected?'selected-for-payment':''}">${selectButton}<div class="ico">${icons[t.category]||'🧾'}</div><div class="item-main" onclick="handleTransactionClick(${t.id})"><div class="item-title">${t.title}</div><div class="item-meta">${t.category}${t.person?' • '+t.person:''}${t.paid&&t.paymentBank?' • Pago via '+t.paymentBank:''}</div></div><div><div class="amount">${t.type==='income'?'+':'-'} ${money(t.type==='expense'?(t.paid?totalDue(t):remainingValue(t)):t.value)}</div><div class="status ${cls}">${status}</div></div>${actions?`<div class="row-actions">${latestReceipt(t)?`<button class="receipt-btn" onclick="event.stopPropagation();openReceipt(${t.id})">🧾</button>`:''}<button class="icon-btn" aria-label="Editar" onclick="event.stopPropagation();editTransaction(${t.id})">✎</button><button class="icon-btn" aria-label="Mais opções" onclick="event.stopPropagation();openTransactionActions(${t.id})">⋯</button></div>`:''}</div>`;
 }
 function togglePaymentSelection(id){
  const t=data.transactions.find(x=>x.id===id);
@@ -1214,7 +1214,7 @@ function openBatchPayment(){
  }
  paymentMode='batch';
  postponePaymentBtn.style.display='none';
- paymentAmountWrap.style.display='none';undoLastPaymentBtn.style.display='none';paymentHistoryInfo.textContent='';
+ paymentAmountWrap.style.display='none';paymentInterestWrap.style.display='none';paymentInterest.value='';undoLastPaymentBtn.style.display='none';paymentHistoryInfo.textContent='';
  paymentTxId.value='';
  paymentDate.value=new Date().toISOString().slice(0,10);
  paymentBank.value='';
@@ -1275,30 +1275,34 @@ function duplicateDraft(t){
    type:t.type,category:t.category,person:t.person||'',note:t.note||'',
    paid:false,repeat:'none',receipt:''};
 }
-function remainingValue(t){return t.paid?0:Math.max(0,Math.round((Number(t.value||0)-Number(t.paidAmount||0))*100)/100)}
+function totalDue(t){return Math.round((Number(t.value||0)+Number(t.interestAmount||0))*100)/100}
+function remainingValue(t){return t.paid?0:Math.max(0,Math.round((totalDue(t)-Number(t.paidAmount||0))*100)/100)}
 function hasPaymentConflict(source){
  return (source.transactions||[]).some(t=>{
    if(t.type&&t.type!=='expense')return false;
-   const value=Math.round(Number(t.value||0)*100),amount=Math.round(Number(t.paidAmount||0)*100);
+   const value=Math.round(totalDue(t)*100),amount=Math.round(Number(t.paidAmount||0)*100);
    const history=t.paymentHistory||[];
    if(history.length&&Math.round(history.reduce((sum,p)=>sum+Number(p.amount||0),0)*100)!==amount)return true;
+   if(Math.round(history.reduce((sum,p)=>sum+Number(p.interest||0),0)*100)!==Math.round(Number(t.interestAmount||0)*100))return true;
    if(amount>value||amount>0&&Boolean(t.paid)!==(amount>=value))return true;
    return false;
  });
 }
 function latestReceipt(t){return [...(t.paymentHistory||[])].reverse().find(entry=>entry.receipt)?.receipt||t.paymentReceipt||t.receipt||''}
-function expenseTotalShown(list){return list.filter(t=>t.type==='expense').reduce((sum,t)=>sum+(t.paid?Number(t.value||0):remainingValue(t)),0)}
+function expenseTotalShown(list){return list.filter(t=>t.type==='expense').reduce((sum,t)=>sum+(t.paid?totalDue(t):remainingValue(t)),0)}
 function fmtDate(date){return new Date(date+'T12:00:00').toLocaleDateString('pt-BR')}
-function paidValue(t){return t.paid?Number(t.value||0):Math.max(0,Number(t.paidAmount||0))}
-function recordPayment(t,amount,date,bank,receipt){
+function paidValue(t){return t.paid?Number(t.paidAmount||totalDue(t)):Math.max(0,Number(t.paidAmount||0))}
+function recordPayment(t,amount,date,bank,receipt,interest=0){
  if(!t||t.type!=='expense'||t.paid||!ensureMonthOpen(t.date))return false;
- const cents=Math.round(Number(amount)*100),remaining=Math.round(remainingValue(t)*100);
- if(!Number.isFinite(cents)||cents<=0||cents>remaining){alert('Informe um valor maior que zero e até o saldo pendente.');return false}
+ const cents=Math.round(Number(amount)*100),interestCents=Math.round(Number(interest)*100);
+ const remaining=Math.round(remainingValue(t)*100)+interestCents;
+ if(!Number.isFinite(cents)||!Number.isFinite(interestCents)||interestCents<0||cents<=0||cents>remaining){alert('Informe um valor válido, sem ultrapassar o saldo com juros.');return false}
+ t.interestAmount=(Math.round(Number(t.interestAmount||0)*100)+interestCents)/100;
  t.paidAmount=Math.round((paidValue(t)*100+cents))/100;
- t.paid=t.paidAmount>=Number(t.value);
+ t.paid=Math.round(t.paidAmount*100)>=Math.round(totalDue(t)*100);
  t.paymentDate=date;t.paymentBank=bank;
  if(!Array.isArray(t.paymentHistory))t.paymentHistory=[];
- t.paymentHistory.push({id:Date.now()+Math.random(),amount:cents/100,date,bank,receipt:receipt||''});
+ t.paymentHistory.push({id:Date.now()+Math.random(),amount:cents/100,interest:interestCents/100,date,bank,receipt:receipt||''});
  return true;
 }
 function rollbackPayment(t){
@@ -1306,7 +1310,8 @@ function rollbackPayment(t){
  if(t.paymentHistory?.length){
    t.paymentHistory.pop();
    t.paidAmount=Math.round(t.paymentHistory.reduce((sum,x)=>sum+Number(x.amount||0),0)*100)/100;
-   t.paid=t.paidAmount>=Number(t.value);
+   t.interestAmount=Math.round(t.paymentHistory.reduce((sum,x)=>sum+Number(x.interest||0),0)*100)/100;
+   t.paid=Math.round(t.paidAmount*100)>=Math.round(totalDue(t)*100);
    const last=t.paymentHistory.at(-1);
    t.paymentDate=last?.date||'';t.paymentBank=last?.bank||'';
  }else if(t.paid||t.paidAmount){
@@ -1321,10 +1326,11 @@ function canEditRecordedPayment(t,value,newPaid,newType){
  return true;
 }
 function csvRows(){
- return [['Tipo','Descrição','Categoria','Valor','Data','Status','Responsável','Observação','Pago até agora','Falta pagar'],
+ return [['Tipo','Descrição','Categoria','Valor','Data','Status','Responsável','Observação','Pago até agora','Falta pagar','Juros e multa','Valor com juros'],
    ...data.transactions.map(t=>[t.type,t.title,t.category,Number(t.value).toFixed(2),t.date,
      t.paid?'Pago':t.type==='expense'&&paidValue(t)>0?'Parcial':'Pendente',t.person||'',t.note||'',
-     t.type==='expense'?paidValue(t).toFixed(2):'',t.type==='expense'?remainingValue(t).toFixed(2):''])];
+     t.type==='expense'?paidValue(t).toFixed(2):'',t.type==='expense'?remainingValue(t).toFixed(2):'',
+     t.type==='expense'?Number(t.interestAmount||0).toFixed(2):'',t.type==='expense'?totalDue(t).toFixed(2):''])];
 }
 function installmentSummary(id){
  const t=data.transactions.find(x=>x.id===Number(id));if(!t)return null;
@@ -1343,7 +1349,7 @@ function cashflowCalendar(month){
  const days=new Map();
  data.transactions.filter(t=>t.date&&t.date.slice(0,7)===month&&['income','expense'].includes(t.type)).forEach(t=>{
    if(!days.has(t.date))days.set(t.date,{date:t.date,income:0,expense:0,items:[]});
-   const day=days.get(t.date);day[t.type==='income'?'income':'expense']+=Number(t.value||0);day.items.push(t);
+   const day=days.get(t.date);day[t.type==='income'?'income':'expense']+=t.type==='income'?Number(t.value||0):totalDue(t);day.items.push(t);
  });
  let running=0;
  return [...days.values()].sort((a,b)=>a.date.localeCompare(b.date)).map(day=>{
@@ -1386,8 +1392,10 @@ function openInstallmentGroup(id){
  installmentsTitle.textContent=(info.rows[0].title||'Parcelas').replace(/\s*\(\d+\/\d+\)$/,'');
  const firstPending=editableInstallmentStart(id);
  installmentsList.innerHTML=`<div class="note">${info.paid} pagas · ${info.pending} pendentes · Restam ${money(info.remaining)} · Término previsto: ${fmtDate(info.finish)}</div>`+
-   info.rows.map(x=>`<div class="card" style="margin:10px 0;box-shadow:none"><b>${escapeHTML(x.title)}</b><div class="note">${fmtDate(x.date)} · ${money(x.value)} · ${x.paid?'Pago':Number(x.paidAmount||0)>0?`Pago ${money(x.paidAmount)} · Restam ${money(remainingValue(x))}`:'Pendente'}</div></div>`).join('')+
+   info.rows.map(x=>`<div class="card" style="margin:10px 0;box-shadow:none"><b>${escapeHTML(x.title)}</b><div class="note">${fmtDate(x.date)} · ${money(totalDue(x))}${Number(x.interestAmount||0)>0?` (inclui ${money(x.interestAmount)} de juros/multa)`:''} · ${x.paid?'Pago':Number(x.paidAmount||0)>0?`Pago ${money(x.paidAmount)} · Restam ${money(remainingValue(x))}`:'Pendente'}</div></div>`).join('')+
    (firstPending?`<button class="primary" onclick="openInstallmentEdit(${Number(firstPending.id)})">Editar próximas a partir de ${fmtDate(firstPending.date)}</button>`:'')+
+   (info.rows.some(x=>!x.paid&&paidValue(x)===0)?`<button class="secondary" onclick="cancelPendingInstallmentsFromOverview(${Number(info.rows[0].id)})">Cancelar parcelas não pagas</button><p class="note">Mantém as parcelas pagas ou parcialmente pagas no histórico.</p>`:'')+
+   `<button class="secondary danger-btn" onclick="deleteInstallmentSeriesFromOverview(${Number(info.rows[0].id)})">Apagar série inteira (inclusive pagas)</button>`+
    `<button class="secondary" onclick="openInstallmentOverview()">Voltar às parcelas</button>`;
  installmentsOverlay.classList.add('show');
 }
@@ -1474,16 +1482,31 @@ function deleteOneTransaction(id){
  closeTransactionActions();persist();renderAll();
 }
 function deleteSeriesTransaction(id){
- const t=data.transactions.find(x=>x.id===id);if(!t)return;
+ const t=data.transactions.find(x=>x.id===id);if(!t)return false;
  const related=relatedTransactions(t);
- if(related.some(x=>!ensureMonthOpen(x.date)))return;
- if(!confirm(`Apagar todas as ${related.length} parcelas, inclusive as já pagas? Esta ação não pode ser desfeita.`))return;
+ if(related.some(x=>!ensureMonthOpen(x.date)))return false;
+ if(!confirm(`Apagar todas as ${related.length} parcelas, inclusive as já pagas? O histórico e comprovantes dessa série serão removidos do app.`))return false;
+ if(related.some(x=>x.paid||paidValue(x)>0)&&!confirm('Confirma a exclusão também das parcelas com pagamentos registrados? A opção Desfazer só fica disponível por 1 minuto.'))return false;
  const ids=new Set(related.map(x=>x.id));
  data.transactions=data.transactions.filter(x=>!ids.has(x.id));
  related.forEach(x=>selectedPaymentIds.delete(x.id));
  rememberTransactionAction('delete',related);
- closeTransactionActions();persist();renderAll();
+ closeTransactionActions();persist();renderAll();return true;
 }
+function cancelPendingInstallments(id){
+ const t=data.transactions.find(x=>x.id===Number(id));if(!t)return false;
+ const pending=relatedTransactions(t).filter(x=>x.type==='expense'&&!x.paid&&paidValue(x)===0);
+ if(!pending.length){alert('Não há parcelas totalmente não pagas para cancelar. As parcialmente pagas foram mantidas.');return false}
+ if(pending.some(x=>!ensureMonthOpen(x.date)))return false;
+ if(!confirm(`Cancelar ${pending.length} ${pending.length===1?'parcela não paga':'parcelas não pagas'} desta série, inclusive as atrasadas? As pagas e parcialmente pagas permanecem. Isto só remove lançamentos do aplicativo.`))return false;
+ const ids=new Set(pending.map(x=>x.id));
+ data.transactions=data.transactions.filter(x=>!ids.has(x.id));
+ pending.forEach(x=>selectedPaymentIds.delete(x.id));
+ rememberTransactionAction('delete',pending);
+ closeTransactionActions();persist();renderAll();return true;
+}
+function cancelPendingInstallmentsFromOverview(id){if(cancelPendingInstallments(id))openInstallmentOverview()}
+function deleteInstallmentSeriesFromOverview(id){if(deleteSeriesTransaction(id))openInstallmentOverview()}
 function renderReserve(){
  const total=data.reserve.reduce((a,r)=>a+(r.type==='in'?r.value:-r.value),0);reserveTotal.textContent=money(total);reserveGoalText.textContent=money(data.reserveGoal);reserveBar.style.width=Math.min(100,total/data.reserveGoal*100)+'%';
  reserveList.innerHTML=[...data.reserve].reverse().map(r=>`<div class="item"><div class="ico">${r.type==='in'?'↗':'↘'}</div><div class="item-main"><div class="item-title">${r.desc}</div><div class="item-meta">${new Date(r.date).toLocaleDateString('pt-BR')}</div></div><div class="amount">${r.type==='in'?'+':'-'} ${money(r.value)}</div><button class="icon-btn danger" onclick="deleteReserve(${r.id})">🗑</button></div>`).join('')||'<div class="empty">Nenhuma movimentação.</div>';
@@ -1498,16 +1521,16 @@ function openBudget(){bValue.value='';budgetOverlay.classList.add('show')}
 function closeBudget(){budgetOverlay.classList.remove('show')}
 function saveBudget(){const v=parseMoney(bValue.value);if(!v){alert('Informe o limite.');return}data.budgets[bCategory.value]=v;persist();closeBudget();renderAll()}
 function renderReports(){
- const tx=filteredMonth(),inc=tx.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0),exp=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+b.value,0),paid=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+paidValue(b),0),pending=tx.filter(t=>!t.paid&&t.type==='expense').reduce((a,b)=>a+remainingValue(b),0);
+ const tx=filteredMonth(),inc=tx.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0),exp=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+totalDue(b),0),paid=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+paidValue(b),0),pending=tx.filter(t=>!t.paid&&t.type==='expense').reduce((a,b)=>a+remainingValue(b),0);
  rIncome.textContent=money(inc);rExpense.textContent=money(exp);rPaid.textContent=money(paid);rPending.textContent=money(pending);rBalance.textContent=money(inc-exp);
  const calendar=cashflowCalendar(currentMonth());
- cashflowCalendarList.innerHTML=calendar.length?calendar.map(day=>`<div style="padding:13px 0;border-bottom:1px solid var(--line)"><strong>${fmtDate(day.date)}</strong><div class="note">${day.items.map(t=>`${t.type==='income'?'Entrada':'Vencimento'}: ${escapeHTML(t.title)} (${money(t.value)})`).join('<br>')}</div><div class="kpi-line"><span>Entra ${money(day.income)} · Vence ${money(day.expense)}</span><strong style="color:${day.running<0?'var(--danger)':'var(--green)'}">Acumulado ${money(day.running)}</strong></div></div>`).join(''):'<div class="empty">Nenhuma entrada ou conta cadastrada neste mês.</div>';
- const cats={};tx.filter(t=>t.type==='expense').forEach(t=>cats[t.category]=(cats[t.category]||0)+t.value);const max=Math.max(1,...Object.values(cats));
+ cashflowCalendarList.innerHTML=calendar.length?calendar.map(day=>`<div style="padding:13px 0;border-bottom:1px solid var(--line)"><strong>${fmtDate(day.date)}</strong><div class="note">${day.items.map(t=>`${t.type==='income'?'Entrada':'Vencimento'}: ${escapeHTML(t.title)} (${money(t.type==='expense'?totalDue(t):t.value)})`).join('<br>')}</div><div class="kpi-line"><span>Entra ${money(day.income)} · Vence ${money(day.expense)}</span><strong style="color:${day.running<0?'var(--danger)':'var(--green)'}">Acumulado ${money(day.running)}</strong></div></div>`).join(''):'<div class="empty">Nenhuma entrada ou conta cadastrada neste mês.</div>';
+ const cats={};tx.filter(t=>t.type==='expense').forEach(t=>cats[t.category]=(cats[t.category]||0)+totalDue(t));const max=Math.max(1,...Object.values(cats));
  categoryChart.innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div class="chart-row"><strong>${c}</strong><div class="bar"><span style="width:${v/max*100}%"></span></div><span>${money(v)}</span></div>`).join('')||'<div class="empty">Sem despesas no mês.</div>';
- const months=[];for(let i=5;i>=0;i--){let d=new Date();d.setMonth(d.getMonth()-i);let m=d.toISOString().slice(0,7),v=data.transactions.filter(t=>ym(t.date)===m&&t.type==='expense').reduce((a,b)=>a+b.value,0);months.push([d.toLocaleDateString('pt-BR',{month:'short'}),v])}const mm=Math.max(1,...months.map(x=>x[1]));
+ const months=[];for(let i=5;i>=0;i--){let d=new Date();d.setMonth(d.getMonth()-i);let m=d.toISOString().slice(0,7),v=data.transactions.filter(t=>ym(t.date)===m&&t.type==='expense').reduce((a,b)=>a+totalDue(b),0);months.push([d.toLocaleDateString('pt-BR',{month:'short'}),v])}const mm=Math.max(1,...months.map(x=>x[1]));
  monthCompare.innerHTML=months.map(([m,v])=>`<div class="chart-row"><strong>${m}</strong><div class="bar"><span style="width:${v/mm*100}%"></span></div><span>${money(v)}</span></div>`).join('');
  const people={};
- tx.filter(t=>t.type==='expense').forEach(t=>{const p=t.person||'Não informado';people[p]=(people[p]||0)+t.value});
+ tx.filter(t=>t.type==='expense').forEach(t=>{const p=t.person||'Não informado';people[p]=(people[p]||0)+totalDue(t)});
  responsibleSummary.innerHTML=Object.entries(people).sort((a,b)=>b[1]-a[1]).map(([p,v])=>`<div class="responsible-row"><strong>${p}</strong><span>${money(v)}</span></div>`).join('')||'<div class="empty">Sem responsáveis informados.</div>';
 }
 
@@ -1519,6 +1542,7 @@ function openPayment(id){
  paymentMode='single';
  postponePaymentBtn.style.display='block';
  paymentAmountWrap.style.display='block';
+ paymentInterestWrap.style.display='block';paymentInterest.value='';
  paymentAmount.value=String(remainingValue(t)).replace('.',',');
  undoLastPaymentBtn.style.display=t.paymentHistory?.length?'block':'none';
  paymentHistoryInfo.textContent=paidValue(t)>0?`Já pago: ${money(paidValue(t))}. Falta: ${money(remainingValue(t))}.`:'Valor total pendente.';
@@ -1526,7 +1550,7 @@ function openPayment(id){
  paymentDate.value=new Date().toISOString().slice(0,10);
  paymentBank.value=t.paymentBank||'';
  currentPaymentReceipt='';
- paymentAccountSummary.innerHTML=`<div style="font-weight:900">${escapeHTML(t.title)}</div><div class="item-meta">${escapeHTML(t.category)} • Vencimento ${fmtDate(t.date)}</div><div class="value sm" style="margin-top:8px">Restam ${money(remainingValue(t))} de ${money(t.value)}</div>`;
+ paymentAccountSummary.innerHTML=`<div style="font-weight:900">${escapeHTML(t.title)}</div><div class="item-meta">${escapeHTML(t.category)} • Vencimento ${fmtDate(t.date)}</div><div class="value sm" style="margin-top:8px">Restam ${money(remainingValue(t))} de ${money(totalDue(t))}</div>`;
  updatePaymentReceiptPreview();
  const payButton=paymentOverlay.querySelector('.primary');
  if(payButton)payButton.textContent='Registrar pagamento';
@@ -1610,10 +1634,13 @@ function confirmPayment(){
  const id=Number(paymentTxId.value);
  const t=data.transactions.find(x=>x.id===id);
  if(!t)return;
- const amount=parseMoney(paymentAmount.value),rest=remainingValue(t);
- if(!Number.isFinite(amount)||amount<=0||Math.round(amount*100)>Math.round(rest*100)){alert('Informe um valor maior que zero e até o saldo pendente.');return}
- if(amount<rest&&!confirm(`Registrar pagamento parcial de ${money(amount)}? Permanecerão ${money(Math.round((rest-amount)*100)/100)} pendentes nesta conta.`))return;
- if(!recordPayment(t,amount,paymentDateValue,bank,currentPaymentReceipt))return;
+ const brl=/^(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?$/;
+ if(!brl.test(paymentAmount.value.trim())||(paymentInterest.value.trim()&&!brl.test(paymentInterest.value.trim()))){alert('Use valores em reais; para centavos, separe com vírgula.');return}
+ const amount=parseMoney(paymentAmount.value),interest=paymentInterest.value.trim()?parseMoney(paymentInterest.value):0,rest=remainingValue(t);
+ if(!Number.isFinite(amount)||!Number.isFinite(interest)||interest<0||amount<=0||Math.round(amount*100)>Math.round(rest*100)){alert('Informe valores válidos; o valor da parcela não pode ultrapassar o saldo pendente.');return}
+ const paidNow=Math.round((amount+interest)*100)/100;
+ if((interest>0||amount<rest)&&!confirm(`Registrar pagamento de ${money(paidNow)}${interest>0?` (inclui ${money(interest)} de juros/multa)`:''}?${amount<rest?` Permanecerão ${money(Math.round((rest-amount)*100)/100)} pendentes nesta conta.`:''}`))return;
+ if(!recordPayment(t,paidNow,paymentDateValue,bank,currentPaymentReceipt,interest))return;
  if(t.paid)selectedPaymentIds.delete(id);
  persist();
  closePayment();
@@ -1695,6 +1722,7 @@ function openDetails(id){
  <div style="font-size:19px;font-weight:900;margin-bottom:8px">${escapeHTML(t.title)}</div>
  <div class="detail-line"><span>Tipo</span><strong>${t.type==='income'?'Receita':'Despesa'}</strong></div>
  <div class="detail-line"><span>Valor</span><strong>${money(t.value)}</strong></div>
+ ${t.type==='expense'&&Number(t.interestAmount||0)>0?`<div class="detail-line"><span>Juros/multa registrados</span><strong>${money(t.interestAmount)}</strong></div><div class="detail-line"><span>Total com juros</span><strong>${money(totalDue(t))}</strong></div>`:''}
  <div class="detail-line"><span>Categoria</span><strong>${escapeHTML(t.category)}</strong></div>
  <div class="detail-line"><span>Vencimento</span><strong>${new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR')}</strong></div>
  <div class="detail-line"><span>Status</span><strong>${t.paid?(t.type==='income'?'Recebido':'Pago'):paidValue(t)>0?'Parcial':'Pendente'}</strong></div>
@@ -1703,7 +1731,7 @@ function openDetails(id){
  ${t.paymentBank?`<div class="detail-line"><span>Banco</span><strong>${escapeHTML(t.paymentBank)}</strong></div>`:''}
  ${t.person?`<div class="detail-line"><span>Responsável</span><strong>${escapeHTML(t.person)}</strong></div>`:''}
  ${t.note?`<div class="detail-line"><span>Observação</span><strong>${escapeHTML(t.note)}</strong></div>`:''}
- ${t.paymentHistory?.length?`<h3>Pagamentos registrados</h3>${t.paymentHistory.map(p=>`<div class="detail-line"><span>${fmtDate(p.date)} · ${escapeHTML(p.bank||'Sem banco')}</span><strong>${money(p.amount)}</strong>${p.receipt?`<button class="text-btn" onclick="openPaymentHistoryReceipt(${Number(t.id)},${Number(p.id)})">Comprovante</button>`:''}</div>`).join('')}`:''}`;
+ ${t.paymentHistory?.length?`<h3>Pagamentos registrados</h3>${t.paymentHistory.map(p=>`<div class="detail-line"><span>${fmtDate(p.date)} · ${escapeHTML(p.bank||'Sem banco')}${Number(p.interest||0)>0?` · inclui ${money(p.interest)} de juros/multa`:''}</span><strong>${money(p.amount)}</strong>${p.receipt?`<button class="text-btn" onclick="openPaymentHistoryReceipt(${Number(t.id)},${Number(p.id)})">Comprovante</button>`:''}</div>`).join('')}`:''}`;
  detailActions.innerHTML=`
  ${receipt?`<button class="primary" onclick="closeDetails();openReceipt(${t.id})">Abrir comprovante</button>`:''}
  ${t.type==='expense'&&!t.paid?`<button class="secondary" onclick="closeDetails();openPayment(${t.id})">Registrar pagamento</button>`:''}
@@ -1837,6 +1865,7 @@ init();
 <input type="hidden" id="paymentTxId">
 <div id="paymentAccountSummary" class="card" style="box-shadow:none;background:#f7f3ef"></div>
 <div id="paymentAmountWrap" class="field"><label>Valor que está pagando agora</label><input id="paymentAmount" inputmode="decimal" placeholder="0,00"><div class="note">Pode pagar uma parte. O restante continua pendente.</div></div>
+<div id="paymentInterestWrap" class="field"><label>Juros ou multa cobrados agora (opcional)</label><input id="paymentInterest" inputmode="decimal" placeholder="0,00"><div class="note">Preencha somente se houver cobrança. O app soma esse valor ao pagamento acima; não calcula juros automaticamente.</div></div>
 <div id="paymentHistoryInfo" class="note"></div>
 <div class="field"><label>Data do pagamento</label><input id="paymentDate" type="date"></div>
 <div class="field"><label>Banco de pagamento (opcional)</label><input id="paymentBank" placeholder="Ex.: Nubank, Itaú, Caixa"></div><div class="note" style="margin-top:8px">No pagamento em grupo, a mesma data, banco e comprovante serão aplicados a todas as contas selecionadas.</div>
