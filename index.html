@@ -67,7 +67,26 @@ h1{font-size:28px;margin:0}.eyebrow{font-size:13px;color:var(--muted)}
 .list{display:flex;flex-direction:column;gap:10px}
 .item{display:flex;align-items:center;gap:11px;background:#fff;border-radius:18px;padding:13px;box-shadow:var(--shadow)}
 .ico{width:43px;height:43px;border-radius:14px;background:#efe6dd;display:grid;place-items:center;font-size:19px}
-.item-main{flex:1;min-width:0}.item-title{font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item-meta{font-size:12px;color:var(--muted);margin-top:3px}
+.item-main{flex:1;min-width:0}.item-title{font-weight:800;white-space:normal;overflow:visible;overflow-wrap:anywhere;line-height:1.35}.item-meta{font-size:12px;color:var(--muted);margin-top:3px;overflow-wrap:anywhere;line-height:1.4}
+/* Compact original-style cards: preserve names, amounts and due dates without ellipsis. */
+.transaction-item{display:grid;grid-template-columns:43px minmax(0,1fr) fit-content(114px);gap:2px 9px;align-items:center;padding:11px 12px}
+.transaction-item.selectable{grid-template-columns:36px 43px minmax(0,1fr) fit-content(114px)}
+.transaction-item>.ico{grid-column:1;grid-row:1/3;align-self:center}
+.transaction-item>.item-main{display:contents}
+.transaction-item .item-title{grid-column:2;grid-row:1;min-width:0;line-height:1.25}
+.transaction-item .item-meta{grid-column:2;grid-row:2;min-width:0;margin-top:0}
+.transaction-item.selectable>.select-payment-btn{grid-column:1;grid-row:1/3;align-self:center}
+.transaction-item.selectable>.ico{grid-column:2}
+.transaction-item.selectable .item-title,.transaction-item.selectable .item-meta{grid-column:3}
+.transaction-item>.item-financial{grid-column:3;grid-row:1;display:block;min-width:0}
+.transaction-item.selectable>.item-financial{grid-column:4}
+.transaction-item .amount{text-align:right;overflow-wrap:anywhere;max-width:100%}
+.transaction-item .status{margin-top:3px;overflow-wrap:anywhere;text-align:right}
+.transaction-item>.row-actions{grid-column:3;grid-row:2;justify-content:flex-end;margin-left:0;min-width:0}
+.transaction-item.selectable>.row-actions{grid-column:4}
+.batch-item>span{min-width:0;flex:1;overflow-wrap:anywhere}
+.batch-item>strong{flex-shrink:0}
+.batch-list~.kpi-line{gap:8px;flex-wrap:wrap}
 .amount{text-align:right;font-weight:850}.status{font-size:11px;margin-top:3px}.late{color:var(--danger)}.ok{color:var(--ok)}.soon{color:var(--warn)}
 .row-actions{display:flex;gap:6px;margin-left:4px}.icon-btn{border:0;width:34px;height:34px;border-radius:11px;background:#f2ece6}.icon-btn.danger{background:#f7e9e9;color:var(--danger)}
 .badge{display:inline-flex;padding:6px 10px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:800}
@@ -250,6 +269,32 @@ body.dark .item.selected-for-payment{background:#263248}
 body.dark .select-payment-btn{background:#2a2a2a}
 body.dark .select-payment-btn.active{background:var(--blue)}
 
+.proposal-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0 14px}.proposal-metric{border:1px solid var(--line);border-radius:15px;background:#fff;padding:12px 8px;text-align:left;color:var(--text);min-width:0}.proposal-metric>span{display:block;font-size:11px;line-height:1.3;color:var(--muted)}.proposal-metric>strong{display:block;margin-top:8px;font-size:17px;letter-spacing:-.5px;white-space:nowrap}.proposal-danger>strong{color:var(--danger)}.proposal-success>strong{color:var(--green,#36825b)}.proposal-shortcuts{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0 15px}.proposal-shortcuts button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 11px;color:var(--text);font-size:12px;font-weight:800}.proposal-toolbar{margin-bottom:12px}.proposal-tabs{display:grid;grid-template-columns:1fr 1fr;padding:4px;background:#eee5dd;border-radius:13px;margin-bottom:10px}.proposal-tabs button{border:0;background:transparent;border-radius:10px;padding:10px;font-weight:850;color:var(--muted)}.proposal-tabs button.active{background:#fff;color:var(--accent);box-shadow:0 2px 5px #0000000d}.proposal-search-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.proposal-filter{padding:0 15px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--accent);font-weight:850}.proposal-total-row{display:flex;justify-content:space-between;gap:8px;font-size:13px}.proposal-total-row strong{white-space:nowrap}.proposal-due-note{display:block;font-size:10px;margin-top:1px}.proposal-metric:focus-visible,.proposal-filter:focus-visible{outline:2px solid var(--accent)}.proposal-day-panel{padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:#fff;margin:10px 0 12px}.proposal-period-row{display:grid;grid-template-columns:55px minmax(0,1fr);gap:8px;align-items:center;margin-bottom:10px}.proposal-period-row label{font-size:12px;color:var(--muted)}.proposal-period-row select{padding:7px 9px;font-size:13px;border-radius:10px}.proposal-days-heading{display:flex;align-items:center;justify-content:space-between;font-size:12px;margin-bottom:7px}.proposal-day-buttons{display:flex;gap:6px;flex-wrap:wrap}.proposal-day-buttons button{border:1px solid var(--line);border-radius:10px;padding:7px 10px;background:#f8f5f1;color:var(--text);font-weight:800;font-size:12px}.proposal-day-buttons button.active{background:var(--accent);border-color:var(--accent);color:white}.proposal-days-help{font-size:10px;margin-top:7px}#proposalOtherDayWrap{margin-top:8px}#proposalOtherDayWrap input{width:100px;padding:7px;font-size:13px}#proposalOtherDayWrap button{border:0;background:var(--accent-soft);padding:8px;border-radius:9px;margin-left:7px}
+.legacy-finance{display:none!important}.account-filter-extra{grid-column:1/-1}.account-filter-extra summary{padding:9px 0;font-size:12px;font-weight:800;cursor:pointer}.account-filter-extra .filters{margin-top:9px}.account-paid-date{display:none}.status .due-tag{display:block;font-size:10px}.payment-period-note{font-size:11px;color:var(--muted);margin-top:5px}
+
+
+.proposal-metric strong{overflow-wrap:anywhere}@media(max-width:360px){.proposal-metric{padding:10px 8px}.proposal-metric strong{font-size:14px}}
+
+/* Compact payment experience: same palette, no decorative charts. */
+.saved-payment-filters{margin:9px 0 12px;font-size:12px}.saved-payment-filters summary{cursor:pointer;font-weight:800;padding:7px 0}.saved-payment-filters label{display:block;margin:7px 0}.saved-payment-filters .secondary{margin:0;padding:8px;font-size:12px}.saved-payment-filters select{margin-top:8px}.saved-payment-filters .note{font-size:11px}
+.next-registered-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:7px}.next-registered-grid button{min-width:0;text-align:left;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 8px;color:var(--text)}.next-registered-grid span,.next-registered-grid strong,.next-registered-grid small{display:block;overflow-wrap:anywhere}.next-registered-grid span{font-size:11px}.next-registered-grid strong{font-size:14px;margin:5px 0}.next-registered-grid small{font-size:10px;color:var(--muted)}
+.payment-feedback{position:fixed;bottom:88px;left:50%;transform:translateX(-50%);z-index:100;max-width:min(450px,90vw);background:var(--text);color:#fff;border-radius:12px;font-size:13px;padding:10px 14px;pointer-events:none;box-shadow:0 3px 14px #0002}.payment-feedback:empty{display:none}.nav svg{width:22px;height:22px;vertical-align:middle}.ico svg{width:21px;height:21px}.row-actions svg{width:16px;height:16px;vertical-align:middle}.select-payment-btn svg{width:15px;height:15px;display:block}.row-actions .pay-action-btn{width:auto;min-width:42px;padding:0 7px;font-size:11px;font-weight:850;color:var(--accent)}
+
+.saved-filter-shortcuts{display:flex;flex-wrap:wrap;gap:6px;margin:7px 0}.saved-filter-shortcuts:empty{display:none}.saved-filter-shortcuts button{border:1px solid var(--line);border-radius:10px;padding:7px 9px;background:var(--accent-soft);color:var(--accent);font-size:11px;font-weight:800;max-width:180px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+
+/* Honor the existing dark theme without changing the approved light palette. */
+body.dark{--danger:#f19aa2;--ok:#80ca9c}
+body.dark .proposal-metric,body.dark .proposal-shortcuts button,body.dark .proposal-filter,body.dark .proposal-tabs button.active,body.dark .due-chip,body.dark .next-registered-grid button{background:var(--card);color:var(--text);border-color:var(--line)}
+body.dark .due-chip.active{background:var(--accent);color:var(--bg)}
+body.dark .ico{background:var(--accent-soft);color:var(--accent)}
+body.dark .row-actions .icon-btn,body.dark .row-actions .receipt-btn{background:var(--accent-soft);color:var(--accent)}
+body.dark .fab{color:var(--bg)}
+body.dark .payment-feedback{color:var(--bg)}
+body.dark .proposal-success strong{color:var(--ok)}
+body.dark .nav button:not(.active){color:var(--muted)}
+
+
+.recovery-card{margin:10px 0}.recovery-card .note{margin:8px 0;line-height:1.5}.recovery-version{padding:14px 0;border-bottom:1px solid var(--line)}.recovery-version strong{display:block;font-size:14px}.recovery-version .secondary{margin-top:8px}
 </style>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -288,7 +333,12 @@ body.dark .select-payment-btn.active{background:var(--blue)}
   <select id="homeMonthFilter" onchange="changeBaseMonth(this.value)"></select>
 </div>
 
-<div class="hero" onclick="openReport()">
+<div class="proposal-metrics">
+<button class="proposal-metric" onclick="openFiltered('pending')"><span>A pagar no mês</span><strong id="payHomePending">R$ 0,00</strong></button>
+<button class="proposal-metric proposal-danger" onclick="openFiltered('late')"><span>Vencidas</span><strong id="payHomeOverdue">R$ 0,00</strong></button>
+<button class="proposal-metric proposal-success" onclick="openFiltered('paidExpense')"><span>Pago no mês</span><strong id="payHomePaid">R$ 0,00</strong></button>
+</div><div id="homeUndatedNotice" class="payment-period-note"></div>
+<div class="legacy-finance" hidden><div class="hero" onclick="openReport()">
   <div class="eyebrow">Saldo previsto do mês</div>
   <div id="kBalance" class="hero-balance">R$ 0,00</div>
   <div class="hero-row">
@@ -309,86 +359,40 @@ body.dark .select-payment-btn.active{background:var(--blue)}
   <div class="card kpi-card kpi-remaining" onclick="openFiltered('upcomingAll')"><div class="kpi-icon">📆</div><h3>A vencer — visão geral</h3><div id="kUpcomingAll" class="value sm">R$ 0,00</div></div>
 </div>
 
-<div class="quick-actions">
-  <button class="quick-action" onclick="openTransaction()"><span>＋</span>Adicionar</button>
-  <button class="quick-action" onclick="showScreen('transactions');dateQuickFilter.value='today';renderTransactions()"><span>📅</span>Hoje</button>
-  <button class="quick-action" onclick="showScreen('transactions');statusFilter.value='late';renderTransactions()"><span>⚠️</span>Vencidas</button>
-  <button class="quick-action" onclick="openInstallmentOverview()"><span>▤</span>Parcelas</button>
 </div>
-
-<div id="financialHealth"></div>
-<div id="attentionSummary" class="card attention-card" style="margin-top:14px"></div>
-<div class="section-head"><h2>Contas que exigem atenção</h2><button class="text-btn" onclick="showScreen('transactions')">Ver todos</button></div>
+<div class="proposal-shortcuts"><button onclick="openFiltered('late')">Vencidas</button><button onclick="openFiltered('today')">Hoje</button><button onclick="openFiltered('7')">7 dias</button><button onclick="openFiltered('allPending')">Todas a pagar</button></div>
+<div id="financialHealth" class="legacy-finance" hidden></div>
+<div id="attentionSummary" class="legacy-finance" hidden></div>
+<div class="section-head"><h2>Vencimentos</h2><button class="text-btn" onclick="openFiltered('allPending')">Ver contas</button></div>
 <div id="homeList" class="list"></div>
-<div class="section-head"><h2>Orçamentos do mês</h2><button class="text-btn" onclick="openBudget()">Configurar</button></div>
-<div id="homeBudgets"></div>
+<div id="nextRegisteredMonths"></div>
+
 </section>
 
 <section id="transactions" class="screen">
-<header><div><div class="eyebrow">Entradas e saídas</div><h1>Movimentações</h1></div><span id="txCount" class="badge">0 itens</span></header>
-<div class="filters">
-<input id="search" class="full" placeholder="Pesquisar..." oninput="renderTransactions()">
-<select id="monthFilter" onchange="changeBaseMonth(this.value)"></select>
-<select id="statusFilter" onchange="renderTransactions()">
-<option value="all">Todos os status</option>
-<option value="pending">Pendentes do mês</option>
-<option value="generalPending">Pendente geral — mês + atrasadas</option>
-<option value="previousOverdue" hidden>Vencidas de meses anteriores</option>
-<option value="upcomingAll">A vencer — todos os meses</option>
-<option value="late">Vencidas — todos os meses</option>
-<option value="paid">Pagos/recebidos</option>
-</select>
-<select id="typeFilter" onchange="renderTransactions()">
-<option value="all">Receitas e despesas</option>
-<option value="expense">Somente despesas</option>
-<option value="income">Somente receitas</option>
-</select>
-<select id="categoryFilter" onchange="renderTransactions()">
-<option value="all">Todas as categorias</option>
-</select>
+<header><div><div class="eyebrow">Organizadas por vencimento</div><h1>Contas</h1></div><span id="txCount" class="badge">0 contas</span></header>
+<div class="proposal-tabs"><button id="accountPendingTab" onclick="setAccountTab('pending')">A pagar</button><button id="accountPaidTab" onclick="setAccountTab('paid')">Pagamentos</button></div>
+<div class="proposal-search-row"><input id="search" placeholder="Buscar pelo nome" oninput="renderTransactions()"><button id="accountFilterButton" class="proposal-filter" aria-expanded="false" onclick="toggleAccountFilters()">Filtrar</button></div>
+<div id="quickPaymentFilters" class="saved-filter-shortcuts"></div>
+<details class="saved-payment-filters"><summary>Filtros favoritos</summary><label for="savedFilterName">Nome do favorito</label><div class="two"><input id="savedFilterName" maxlength="80" placeholder="Nome do favorito"><button class="secondary" onclick="savePaymentFilter()">Salvar filtro atual</button></div><select id="savedFilterSelect" aria-label="Filtros favoritos"><option value="">Escolha um favorito</option></select><div class="two"><button class="text-btn" onclick="loadPaymentFilter()">Carregar favorito</button><button class="text-btn" onclick="removePaymentFilter()">Remover favorito</button></div><div class="note">Favoritos mensais seguem o mês selecionado. Para reunir meses, escolha Todos os meses.</div></details>
+<div id="accountFiltersPanel" class="proposal-day-panel" style="display:none">
+<div class="proposal-period-row"><label for="accountPeriod">Período</label><select id="accountPeriod" onchange="changeAccountPeriod()"></select></div>
+<div class="proposal-days-heading"><strong>Dias de vencimento</strong><button class="text-btn" onclick="resetFilters();renderTransactions()">Limpar</button></div>
+<div id="dueDayChips" class="proposal-day-buttons">
+<button type="button" class="due-chip" data-day="5" onclick="toggleDueDay(5)">05</button><button type="button" class="due-chip" data-day="10" onclick="toggleDueDay(10)">10</button><button type="button" class="due-chip" data-day="15" onclick="toggleDueDay(15)">15</button><button type="button" class="due-chip" data-day="20" onclick="toggleDueDay(20)">20</button><button type="button" class="due-chip" data-day="25" onclick="toggleDueDay(25)">25</button><button type="button" class="due-chip" data-day="30" onclick="toggleDueDay(30)">30</button>
+<button type="button" onclick="customDayWrap.style.display='block';customDueDay.focus()">+ dia</button></div>
+<div id="dueFilterNote" class="note proposal-days-help"></div>
+<div id="customDayWrap" style="display:none;margin-top:8px"><input id="customDueDay" type="number" min="1" max="31" placeholder="Outro dia" style="max-width:110px"><button class="text-btn" onclick="addDueDay()">Adicionar</button></div>
+<details class="account-filter-extra"><summary>Mais filtros</summary><div class="filters">
+<select id="monthFilter" style="display:none" onchange="changeBaseMonth(this.value)"></select>
+<select id="statusFilter" style="display:none"><option value="pending">A pagar</option><option value="paid">Pagamentos</option><option value="late">Vencidas</option><option value="previousOverdue">Vencidas anteriores</option><option value="generalPending">Mês e atrasadas</option><option value="upcomingAll">A vencer</option></select>
+<select id="typeFilter" style="display:none"><option value="expense">Despesa</option><option value="all">Histórico legado</option><option value="income">Receita legada</option></select>
+<select id="categoryFilter" onchange="renderTransactions()"><option value="all">Todas as categorias</option></select>
 <input id="bankFilter" placeholder="Filtrar por banco" oninput="renderTransactions()">
-<select id="receiptFilter" onchange="renderTransactions()">
-<option value="all">Com ou sem comprovante</option>
-<option value="with">Somente com comprovante</option>
-<option value="without">Somente sem comprovante</option>
-</select>
-<select id="dateQuickFilter" onchange="toggleCustomDate();renderTransactions()">
-<option value="all">Todas as datas</option>
-<option value="today">Vencem hoje</option>
-<option value="7">Próximos 7 dias</option>
-<option value="15">Próximos 15 dias</option>
-<option value="30">Próximos 30 dias</option>
-
-
-
-
-
-<option value="dayCustom">Dia personalizado</option>
-<option value="custom">Período personalizado</option>
-</select>
-<div class="due-filter-box">
-  <div class="due-filter-title"><div><div class="eyebrow">Dias de vencimento</div><strong>Selecione um ou mais dias</strong></div><button type="button" class="text-btn" onclick="clearDueDays()">Desmarcar</button></div>
-  <div id="dueDayChips" class="due-chips">
-    <button type="button" class="due-chip" data-day="5" onclick="toggleDueDay(5)">Dia 05</button>
-    <button type="button" class="due-chip" data-day="10" onclick="toggleDueDay(10)">Dia 10</button>
-    <button type="button" class="due-chip" data-day="15" onclick="toggleDueDay(15)">Dia 15</button>
-    <button type="button" class="due-chip" data-day="20" onclick="toggleDueDay(20)">Dia 20</button>
-    <button type="button" class="due-chip" data-day="25" onclick="toggleDueDay(25)">Dia 25</button>
-    <button type="button" class="due-chip" data-day="30" onclick="toggleDueDay(30)">Dia 30</button>
-  </div>
-  <div id="dueFilterNote" class="due-filter-note">Nenhum dia selecionado. Toque para marcar; toque novamente para desmarcar.</div>
-</div>
-<div id="customDayWrap" class="full" style="display:none">
-<label class="eyebrow">Dia do vencimento</label>
-<input id="customDueDay" type="number" min="1" max="31" placeholder="Ex.: 12" oninput="renderTransactions()">
-</div>
-<div id="customDateWrap" class="full" style="display:none">
-<div class="two">
-<div><label class="eyebrow">De</label><input id="dateFrom" type="date" onchange="renderTransactions()"></div>
-<div><label class="eyebrow">Até</label><input id="dateTo" type="date" onchange="renderTransactions()"></div>
-</div>
-</div>
-</div>
+<select id="receiptFilter" onchange="renderTransactions()"><option value="all">Com ou sem comprovante</option><option value="with">Com comprovante</option><option value="without">Sem comprovante</option></select>
+<select id="dateQuickFilter" onchange="toggleCustomDate();renderTransactions()"><option value="all">Todas as datas</option><option value="today">Vencem hoje</option><option value="7">Próximos 7 dias</option><option value="15">Próximos 15 dias</option><option value="30">Próximos 30 dias</option><option value="custom">Período personalizado</option><option value="dayCustom" hidden>Dia personalizado legado</option></select>
+<div id="customDateWrap" class="full" style="display:none"><div class="two"><input id="dateFrom" type="date" onchange="renderTransactions()"><input id="dateTo" type="date" onchange="renderTransactions()"></div></div>
+</div></details></div>
 <div id="closedMonthBanner"></div>
 <div id="filterSummary" class="card summary-card"></div>
 <div class="section-head"><h2>Lançamentos</h2><div><button class="text-btn" onclick="openInstallmentOverview()">Minhas parcelas</button><button class="text-btn" onclick="resetFilters();renderTransactions()">Limpar filtros</button></div></div>
@@ -407,21 +411,23 @@ body.dark .select-payment-btn.active{background:var(--blue)}
 <section id="reports" class="screen">
 <header><div><div class="eyebrow">Análise financeira</div><h1>Relatórios</h1></div></header>
 <div class="card">
-<div class="kpi-line"><span>Receitas</span><strong id="rIncome">R$ 0,00</strong></div>
-<div class="kpi-line"><span>Despesas</span><strong id="rExpense">R$ 0,00</strong></div>
-<div class="kpi-line"><span>Pago</span><strong id="rPaid">R$ 0,00</strong></div>
+<div hidden class="legacy-finance"><strong id="rIncome"></strong><strong id="rBalance"></strong></div>
+<div class="kpi-line"><span>Contas que vencem no mês</span><strong id="rExpense">R$ 0,00</strong></div>
+<div class="kpi-line"><span>Pago de fato no mês</span><strong id="rPaid">R$ 0,00</strong></div><div class="kpi-line"><span>Juros/multa pagos (já incluídos)</span><strong id="rPaidInterest">R$ 0,00</strong></div>
 <div class="kpi-line"><span>Pendente</span><strong id="rPending">R$ 0,00</strong></div>
-<div class="kpi-line"><span>Saldo do mês</span><strong id="rBalance">R$ 0,00</strong></div>
+<div id="paymentUndatedInfo" class="payment-period-note"></div>
 </div>
-<div class="section-head"><h2>Calendário do dinheiro</h2></div>
-<div class="card"><div class="note">Entradas cadastradas e contas no dia do vencimento. O acumulado começa em zero a cada mês: não é o saldo da sua conta bancária.</div><div id="cashflowCalendarList"></div></div>
-<div class="section-head"><h2>Gastos por categoria</h2></div>
+<div class="section-head"><h2>Calendário de vencimentos</h2></div>
+<div class="card"><div class="note">Contas na data do vencimento. O total pago acima considera a data real de cada pagamento.</div><div id="cashflowCalendarList"></div></div>
+<div class="section-head"><h2>Pagamentos por categoria no mês</h2></div>
 <div id="categoryChart" class="card"></div>
-<div class="section-head"><h2>Comparação mensal</h2></div>
+<div class="section-head"><h2>Pagamentos por mês</h2></div>
 <div id="monthCompare" class="card"></div>
 <div class="section-head"><h2>Resumo por responsável</h2></div>
 <div id="responsibleSummary" class="card"></div>
 <div class="report-actions no-print"><button onclick="exportCSV()">Exportar CSV</button><button onclick="window.print()">Salvar em PDF</button></div>
+<details class="card" style="margin-top:15px"><summary>Limites por categoria (opcional)</summary><div class="section-head"><h2>Orçamentos do mês</h2><button class="text-btn" onclick="openBudget()">Configurar</button></div>
+<div id="homeBudgets"></div></details>
 <div class="section-head no-print"><h2>Fechamento mensal</h2></div>
 <div id="closeMonthCard" class="card no-print"></div>
 <div class="section-head no-print"><h2>Alertas de vencimento</h2></div>
@@ -437,6 +443,7 @@ body.dark .select-payment-btn.active{background:var(--blue)}
   <div class="note" style="margin-top:6px">Contas, pagamentos, reserva, categorias e configurações são compartilhados. Os comprovantes ainda ficam somente no celular até ativarmos o Firebase Storage.</div>
 </div>
 <div class="section-head no-print"><h2>Segurança e backup</h2></div>
+<div class="card no-print recovery-card"><strong>Histórico de cópias deste aparelho</strong><div id="localRecoveryStatus" class="note">As cópias ficam disponíveis após carregar sua conta.</div><button class="secondary" onclick="openRecoveryVersions()">Ver versões anteriores</button><p class="note">Até 6 versões recentes, somente neste navegador e aparelho. Apagar os dados do navegador ou perder o aparelho também apaga estas cópias. Não é backup externo; mantenha também um backup exportado.</p></div>
 <div class="card no-print">
   <div class="settings-grid">
     <button onclick="exportBackup()">Fazer backup</button>
@@ -469,18 +476,19 @@ body.dark .select-payment-btn.active{background:var(--blue)}
   </div>
   <div class="payment-selection-actions">
     <button class="selection-clear" onclick="clearPaymentSelection()">Desmarcar todas</button>
-    <button class="selection-pay" onclick="openBatchPayment()">Pagar selecionadas</button>
+    <button class="selection-pay" onclick="openBatchPayment()">Registrar pagamento</button>
   </div>
 </div>
 
-<button class="fab" onclick="openTransaction()">+</button>
+<button class="fab" onclick="openTransaction()" aria-label="Nova conta"><svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
 <nav class="nav">
-<button class="active" data-screen="home" onclick="showScreen('home')">⌂<br>Início</button>
-<button data-screen="transactions" onclick="showScreen('transactions')">▤<br>Contas</button>
+<button class="active" data-screen="home" onclick="showScreen('home')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 9-8 9 8M5 10v11h14V10M9 21v-7h6v7"/></svg><br>Início</button>
+<button data-screen="transactions" onclick="showScreen('transactions')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2ZM9 7h6M9 11h6M9 15h4"/></svg><br>Contas</button>
 <div></div>
-<button onclick="openFiltered('late')">⚠<br>Vencidas</button>
-<button data-screen="reports" onclick="showScreen('reports')">▥<br>Relatórios</button>
+<button onclick="openFiltered('late')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 3 10 18H2ZM12 9v5M12 17h.01"/></svg><br>Vencidas</button>
+<button data-screen="reports" onclick="showScreen('reports')"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 3h16v18H4ZM8 7h8M8 12h8M8 17h5"/></svg><br>Relatórios</button>
 </nav>
+<div id="paymentFeedback" class="payment-feedback" role="status" aria-live="polite" aria-atomic="true"></div>
 <div id="undoToast" class="undo-toast" role="status"><span id="undoToastMessage"></span><button onclick="undoLastTransactionAction()">Desfazer</button><button class="undo-dismiss" aria-label="Fechar aviso" onclick="dismissUndoToast()">×</button></div>
 
 <div id="txActionsOverlay" class="overlay"><div class="sheet">
@@ -505,17 +513,19 @@ body.dark .select-payment-btn.active{background:var(--blue)}
  <button class="secondary" onclick="installmentEditOverlay.classList.remove('show')">Cancelar</button>
 </div></div>
 
+<div id="recoveryOverlay" class="overlay"><div class="sheet"><h2>Versões anteriores</h2><p class="note">Restaurar substitui os dados atuais. Uma cópia do estado atual precisa ser guardada antes. Estas versões ficam apenas neste aparelho.</p><div id="recoveryVersionList" aria-live="polite"></div><button class="secondary" onclick="closeRecoveryVersions()">Voltar sem restaurar</button></div></div>
 <div id="txOverlay" class="overlay"><div class="sheet">
 <h2 id="txModalTitle">Novo lançamento</h2>
 <input type="hidden" id="editId">
-<div class="two">
-<div class="field"><label>Tipo</label><select id="tType"><option value="expense">Despesa</option><option value="income">Receita</option></select></div>
-<div class="field"><label>Status</label><select id="tPaid"><option value="false">Pendente</option><option value="true">Pago/recebido</option></select></div>
+<div>
+<div class="field" style="display:none"><label>Tipo legado</label><select id="tType"><option value="expense">Despesa</option><option value="income">Receita</option></select></div>
+<div class="field"><label>Status</label><select id="tPaid" onchange="updateInitialPaymentDate()"><option value="false">Pendente</option><option value="true">Já paga</option></select></div>
 </div>
+<div id="initialPaymentDateWrap" class="field" style="display:none"><label for="tPaidDate">Data do pagamento</label><input id="tPaidDate" type="date"><div id="initialPaymentDateNote" class="note">Use a data em que você realmente pagou.</div></div>
 <div class="field"><label>Descrição</label><input id="tTitle" placeholder="Ex.: Conta de luz"></div>
 <div class="two">
 <div class="field"><label>Valor</label><input id="tValue" inputmode="decimal" placeholder="0,00"></div>
-<div class="field"><label>Data</label><input id="tDate" type="date"></div>
+<div class="field"><label>Vencimento</label><input id="tDate" type="date"></div>
 </div>
 <div class="two">
 <div class="field">
@@ -759,8 +769,9 @@ const DB='nossa_familia_pro_v1';
 const MONTH_KEY='nossa_familia_mes_base';
 const baseCategories=['Água','Luz','Internet','Moradia','Alimentação','Filha','Curso','Mesada','Passeios','Família','Saúde','Transporte','Lazer','Outros','Salário','Renda extra'];
 function getCategories(){return [...new Set([...baseCategories,...(data.customCategories||[])])].sort((a,b)=>a.localeCompare(b,'pt-BR'))}
-const icons={'Água':'💧','Luz':'💡','Internet':'📶','Moradia':'🏠','Alimentação':'🛒','Filha':'👧','Curso':'📚','Mesada':'💰','Passeios':'🎡','Família':'👨‍👩‍👧','Saúde':'🩺','Transporte':'🚗','Lazer':'🎬','Salário':'💼','Renda extra':'➕','Outros':'🧾'};
+const icons={"Água": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 3C10 7 5 11 5 15a7 7 0 0 0 14 0c0-4-5-8-7-12Z\"/></svg>", "Luz": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m13 2-9 12h7l-1 8 10-12h-7l1-8Z\"/></svg>", "Internet": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 8a15 15 0 0 1 18 0M6 12a10 10 0 0 1 12 0M9 16a5 5 0 0 1 6 0M12 20h.01\"/></svg>", "Moradia": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m3 11 9-8 9 8M5 10v11h14V10M9 21v-7h6v7\"/></svg>", "Alimentação": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 3h2l3 13h11l2-9H6M9 21h.01M18 21h.01\"/></svg>", "Filha": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0M5 21v-2a7 7 0 0 1 14 0v2\"/></svg>", "Curso": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 6c-3-2-6-2-10-1v15c4-1 7-1 10 1 3-2 6-2 10-1V5c-4-1-7-1-10 1Zm0 0v15\"/></svg>", "Mesada": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 6h18v14H3ZM3 6V3h15v3M16 12h5v4h-5Z\"/></svg>", "Passeios": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 20h18M5 20 9 4h6l4 16M7 12h10M12 4v16\"/></svg>", "Família": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M8 7a3 3 0 1 0 0 .01M17 8a3 3 0 1 0 0 .01M2 21v-3a6 6 0 0 1 12 0v3M16 14a5 5 0 0 1 6 5v2\"/></svg>", "Saúde": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M9 3h6v6h6v6h-6v6H9v-6H3V9h6Z\"/></svg>", "Transporte": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 17H3V9l3-5h12l3 5v8h-2M5 17v3h3v-3m8 0v3h3v-3M3 10h18M7 14h.01M17 14h.01M8 17h8\"/></svg>", "Lazer": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 5h18v15H3ZM3 10h18M7 5l3 5m4-5 3 5\"/></svg>", "Salário": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 7h18v14H3ZM8 7V3h8v4M3 12h18\"/></svg>", "Renda extra": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 5v14M5 12h14\"/></svg>", "Outros": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M6 3h12v18l-3-2-3 2-3-2-3 2ZM9 7h6M9 11h6M9 15h4\"/></svg>"};
 let data=JSON.parse(localStorage.getItem(DB)||'null')||{transactions:[],reserve:[],budgets:{},reserveGoal:20000,closedMonths:{}};
+
 const selectedDueDays=new Set();
 const selectedPaymentIds=new Set();
 let paymentMode='single';
@@ -777,9 +788,11 @@ const today=()=>{
  return new Date(n.getFullYear(),n.getMonth(),n.getDate(),12,0,0,0);
 };
 const parseMoney=s=>parseFloat((s||'').replace(/\./g,'').replace(',','.'))||0;
-function persist(){
- try{localStorage.setItem(DB,JSON.stringify(data))}
+function persist(options={}){
+ let previousSavedData;
+ try{previousSavedData=localStorage.getItem(DB);localStorage.setItem(DB,JSON.stringify(data))}
  catch(err){
+   if(options.durableOnly)return false;
    const previous=localStorage.getItem(DB);
    if(previous)data=JSON.parse(previous);
    if(typeof lastTransactionAction!=='undefined')lastTransactionAction=null;
@@ -788,6 +801,8 @@ function persist(){
    if(previous)renderAll();
    return false;
  }
+ if(options.durableOnly)return true;
+ if(typeof queueRecoveryPrior==='function')queueRecoveryPrior(previousSavedData);
  checkStorage();
  if(firebaseUser&&!applyingCloudData)scheduleCloudSave();
  return true;
@@ -826,12 +841,17 @@ function mergeLocalReceipts(remote){
  return remote;
 }
 function applyIncomingCloud(remote){
+ if(!validRecoveryAppData(remote)){showCloudStatus('Formato incompatível — sincronização pausada');return false}
  applyingCloudData=true;
+ let previousSavedData;
  try{
    const incoming=mergeLocalReceipts(remote);
+   previousSavedData=localStorage.getItem(DB);
    if(!incoming.closedMonths)incoming.closedMonths={};
+   if(!incoming.reserve)incoming.reserve=[];if(!incoming.budgets)incoming.budgets={};
    if(!incoming.customCategories)incoming.customCategories=[];
    if(!incoming.settings)incoming.settings={people:[],favoriteCategories:[],savingsGoal:0,theme:'light'};
+   incoming.transactions.forEach(t=>{if(t.date==null)t.date=''});
    localStorage.setItem(DB,JSON.stringify(incoming));
    data=incoming;
  }catch(err){
@@ -839,7 +859,10 @@ function applyIncomingCloud(remote){
    alert('Não há espaço suficiente para atualizar os dados neste aparelho. Seus lançamentos locais foram mantidos. Libere espaço e reabra o app; não restaure backup por cima das contas atuais.');
    return false;
  }finally{applyingCloudData=false}
- refreshCategoryOptions();applySettings();renderAll();
+ try{
+   if(typeof queueRecoveryPrior==='function')queueRecoveryPrior(previousSavedData,'Antes de sincronizar contas');
+   refreshCategoryOptions();applySettings();renderAll();
+ }catch(_){alert('Os dados da nuvem foram salvos neste aparelho, mas a tela não pôde ser atualizada. Reabra o aplicativo.')}
  return true;
 }
 function showCloudStatus(text='Sincronizando…'){
@@ -853,48 +876,107 @@ function markCloudConflict(){
  showCloudStatus('Pagamentos divergentes — sincronização pausada');
  alert('Encontramos pagamentos divergentes entre aparelhos. Seus dados deste aparelho não foram substituídos e a sincronização foi pausada. Atualize o app nos outros aparelhos e confira os pagamentos antes de continuar. Não restaure backup por cima das contas atuais.');
 }
+function invalidateCloudSession(){
+ clearTimeout(cloudSaveTimer);cloudSaveTimer=null;
+ startCloudSync.generation=(startCloudSync.generation||0)+1;startCloudSync.ready=null;startCloudSync.authorized=null;
+}
+function cloudSessionCurrent(uid,generation){return !!uid&&firebaseUser?.uid===uid&&startCloudSync.generation===generation}
 function scheduleCloudSave(){
  if(cloudConflict)return;
- clearTimeout(cloudSaveTimer);
- cloudSaveTimer=setTimeout(saveCloudData,500);
+ clearTimeout(cloudSaveTimer);cloudSaveTimer=null;
+ const uid=firebaseUser?.uid,generation=startCloudSync.generation;
+ if(!cloudSessionCurrent(uid,generation)||startCloudSync.ready!==generation)return;
+ const payload=cloudSafeData(data);
+ cloudSaveTimer=setTimeout(()=>saveCloudData({uid,generation,payload}),500);
 }
-async function saveCloudData(){
- if(!firebaseUser||cloudConflict)return;
- if(hasPaymentConflict(data)){markCloudConflict();return}
+async function saveCloudData(job){
+ if(!job||!cloudSessionCurrent(job.uid,job.generation)||startCloudSync.ready!==job.generation||cloudConflict)return false;
+ if(hasPaymentConflict(job.payload)){markCloudConflict();return false}
  try{
    showCloudStatus('Salvando na nuvem…');
-   await familyDoc.set(cloudSafeData(data),{merge:false});
-   hideCloudStatus();
+   await familyDoc.set(job.payload,{merge:false});
+   if(!cloudSessionCurrent(job.uid,job.generation))return false;
+   hideCloudStatus();return true;
  }catch(err){
+   if(!cloudSessionCurrent(job.uid,job.generation))return false;
    hideCloudStatus();
    alert('Não foi possível sincronizar. Verifique as regras do Firestore e sua conexão.');
-   console.error(err);
+   console.error(err);return false;
  }
 }
+function recoveryComparable(value){
+ const copy=JSON.parse(JSON.stringify(value));delete copy.cloudMeta;
+ (copy.transactions||[]).forEach(t=>{
+   if(!t.receipt)delete t.receipt;if(!t.paymentReceipt)delete t.paymentReceipt;
+   if(!t.paymentHistory)t.paymentHistory=[];
+   t.paymentHistory.forEach(p=>{if(!p.receipt)delete p.receipt});
+ });
+ if(!copy.reserve)copy.reserve=[];if(!copy.budgets)copy.budgets={};if(!copy.closedMonths)copy.closedMonths={};if(!copy.customCategories)copy.customCategories=[];
+ if(copy.reserveGoal===undefined)copy.reserveGoal=20000;
+ copy.settings={people:[],favoriteCategories:[],savingsGoal:0,theme:'light',...(copy.settings||{})};
+ const sorted=x=>Array.isArray(x)?x.map(sorted):x&&typeof x==='object'?Object.fromEntries(Object.keys(x).sort().map(k=>[k,sorted(x[k])])):x;
+ return JSON.stringify(sorted(copy));
+}
+function recoveryReplacementLoses(local,incoming){
+ const comparable=recoveryComparable(local);
+ return comparable!==recoveryComparable({transactions:[]})&&comparable!==recoveryComparable(incoming);
+}
 async function startCloudSync(){
- if(cloudUnsubscribe)cloudUnsubscribe();
+ invalidateCloudSession();
+ const expectedUid=firebaseUser?.uid,generation=startCloudSync.generation;
+ if(cloudUnsubscribe){cloudUnsubscribe();cloudUnsubscribe=null}
+ if(typeof deactivateAppRecovery==='function')deactivateAppRecovery();
+ const current=()=>cloudSessionCurrent(expectedUid,generation);
  showCloudStatus('Carregando dados…');
  const first=await familyDoc.get();
- if(!first.exists){
-   if(hasPaymentConflict(data)){markCloudConflict();return}
-   await familyDoc.set(cloudSafeData(data));
- }else{
-   if(hasPaymentConflict(first.data())){markCloudConflict();return}
-   if(!applyIncomingCloud(first.data()))return;
+ if(!current())return false;
+ const remote=first.exists?first.data():null;
+ if(!validRecoveryAppData(remote||data)){
+   showCloudStatus('Formato incompatível — sincronização pausada');
+   alert('Os dados recebidos têm um formato incompatível. Nada foi substituído. Exporte um backup local e confira o arquivo antes de tentar novamente.');return false;
  }
+ if(hasPaymentConflict(remote||data)){markCloudConflict();return false}
+ startCloudSync.authorized=generation;
+ const beforeRaw=localStorage.getItem(DB),beforeMemory=JSON.stringify(data);
+ const local=beforeRaw?JSON.parse(beforeRaw):JSON.parse(beforeMemory);
+ const lossy=!!remote&&(recoveryReplacementLoses(local,mergeLocalReceipts(JSON.parse(JSON.stringify(remote))))||recoveryReplacementLoses(data,mergeLocalReceipts(JSON.parse(JSON.stringify(remote)))));
+ let protection=typeof activateAppRecovery==='function'?await activateAppRecovery(expectedUid):{ok:false};
+ if(!current())return false;
+ if(protection?.ok&&JSON.stringify(local)!==beforeMemory){
+   protection=await appRecoveryState().controller.capturePrevious(JSON.parse(beforeMemory),'Estado em memória antes de sincronizar contas');
+   if(!current())return false;
+ }
+ if(beforeRaw!==localStorage.getItem(DB)||beforeMemory!==JSON.stringify(data)){
+   showCloudStatus('Contas alteradas — tente sincronizar novamente');return false;
+ }
+ if(lossy&&!protection?.ok){
+   showCloudStatus('Sincronização pausada — proteja os dados locais');
+   alert('Não foi possível guardar a cópia dos dados locais antes de receber a nuvem. Nada foi substituído. Exporte um backup deste aparelho, libere espaço e reabra o aplicativo para tentar carregar a conta novamente.');return false;
+ }
+ if(!first.exists){
+   await familyDoc.set(cloudSafeData(data));
+   if(!current())return false;
+ }else if(!applyIncomingCloud(remote))return false;
+ if(!current())return false;
+ startCloudSync.ready=generation;
  cloudUnsubscribe=familyDoc.onSnapshot(snap=>{
-   if(!snap.exists||!firebaseUser||cloudConflict)return;
+   if(!snap.exists||!current()||startCloudSync.ready!==generation||cloudConflict)return;
    const incoming=snap.data();
+   if(!validRecoveryAppData(incoming)){
+     clearTimeout(cloudSaveTimer);cloudSaveTimer=null;startCloudSync.ready=null;
+     showCloudStatus('Formato incompatível — sincronização pausada. Exporte um backup e reabra o app.');return;
+   }
    if(hasPaymentConflict(incoming)){markCloudConflict();return}
    if(incoming.cloudMeta?.updatedByClientId===cloudClientId)return;
    if(!applyIncomingCloud(incoming))return;
    showCloudStatus('Dados atualizados');
-   setTimeout(hideCloudStatus,1000);
+   setTimeout(()=>{if(current())hideCloudStatus()},1000);
  },err=>{
-   console.error(err);
-   showCloudStatus('Erro de sincronização');
+   if(!current())return;
+   console.error(err);showCloudStatus('Erro de sincronização');
  });
- hideCloudStatus();
+ if(!current()){if(cloudUnsubscribe)cloudUnsubscribe();return false}
+ hideCloudStatus();return true;
 }
 function isMonthClosed(month){return !!data.closedMonths[month]}
 function ensureMonthOpen(date){
@@ -902,7 +984,7 @@ function ensureMonthOpen(date){
  if(isMonthClosed(month)){alert('Este mês está fechado. Reabra o mês em Relatórios para fazer alterações.');return false}
  return true;
 }
-function currentMonth(){return homeMonthFilter.value||monthFilter.value||localStorage.getItem(MONTH_KEY)||new Date().toISOString().slice(0,7)}
+function currentMonth(){return homeMonthFilter.value||monthFilter.value||localStorage.getItem(MONTH_KEY)||localDateISO().slice(0,7)}
 function daysUntil(s){
  const [y,m,d]=s.split('-').map(Number);
  const due=new Date(y,m-1,d,12,0,0,0);
@@ -924,9 +1006,9 @@ function generateRecurring(){
 }
 function refreshCategoryOptions(){
  const cats=getCategories();
- tCategory.innerHTML=cats.map(c=>`<option>${c}</option>`).join('');
- bCategory.innerHTML=cats.filter(c=>!['Salário','Renda extra'].includes(c)).map(c=>`<option>${c}</option>`).join('');
- categoryFilter.innerHTML='<option value="all">Todas as categorias</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+ tCategory.innerHTML=cats.map(c=>`<option>${escapeHTML(c)}</option>`).join('');
+ bCategory.innerHTML=cats.filter(c=>!['Salário','Renda extra'].includes(c)).map(c=>`<option>${escapeHTML(c)}</option>`).join('');
+ categoryFilter.innerHTML='<option value="all">Todas as categorias</option>'+cats.map(c=>`<option value="${escapeHTML(c)}">${escapeHTML(c)}</option>`).join('');
 }
 function addCustomCategory(){
  const name=(newCategoryName.value||'').trim();
@@ -969,18 +1051,29 @@ function showAccountActions(){
  if(confirm(`Conta conectada:\n${email}\n\nToque em OK para sair.`))signOutFirebase();
 }
 firebaseAuth.onAuthStateChanged(async user=>{
+ invalidateCloudSession();
  firebaseUser=user;
+ cloudLogin.classList.remove('hidden');accountMenu.style.display='none';
+ if(typeof deactivateAppRecovery==='function')deactivateAppRecovery();
  if(user){
-   cloudLogin.classList.add('hidden');
-   accountMenu.style.display='block';
-   await startCloudSync();
+   const loading=startCloudSync(),generation=startCloudSync.generation;
+   try{await loading}catch(err){
+     if(!cloudSessionCurrent(user.uid,generation))return;
+     showCloudStatus('Não foi possível carregar a conta. Tente novamente.');console.error(err);
+   }
+   if(!cloudSessionCurrent(user.uid,generation)||startCloudSync.authorized!==generation)return;
+   cloudLogin.classList.add('hidden');accountMenu.style.display='block';
    if(oneSignalReady && oneSignalInstance){
      try{
        await oneSignalInstance.login(user.uid);
+       if(!cloudSessionCurrent(user.uid,generation))return;
        await oneSignalInstance.User.addTag("familia","principal");
+       if(!cloudSessionCurrent(user.uid,generation))return;
        await oneSignalInstance.User.addTag("email",user.email||"");
+       if(!cloudSessionCurrent(user.uid,generation))return;
        await updateNotificationState();
-     }catch(e){console.error(e)}
+       if(!cloudSessionCurrent(user.uid,generation))return;
+     }catch(e){if(cloudSessionCurrent(user.uid,generation))console.error(e)}
    }
  }else{
    if(cloudUnsubscribe){cloudUnsubscribe();cloudUnsubscribe=null}
@@ -992,7 +1085,7 @@ firebaseAuth.onAuthStateChanged(async user=>{
 
 function init(){
  refreshCategoryOptions();
- registerUndoToastLifecycle();
+ registerUndoToastLifecycle();registerPaymentFeedbackLifecycle();
  
  const now=new Date(); let opts=[];
  for(let i=-60;i<=120;i++){
@@ -1004,45 +1097,88 @@ function init(){
  const options=opts.join('');
  monthFilter.innerHTML=options;
  homeMonthFilter.innerHTML=options;
- const savedMonth=localStorage.getItem(MONTH_KEY)||new Date().toISOString().slice(0,7);
+ const savedMonth=localStorage.getItem(MONTH_KEY)||localDateISO().slice(0,7);
  monthFilter.value=savedMonth;
  homeMonthFilter.value=savedMonth;
+ accountPeriod.innerHTML='<option value="all">Todos os meses</option>'+options;accountPeriod.value=savedMonth;
+ statusFilter.value='pending';typeFilter.value='expense';updateDueDayChips();
  generateRecurring();applySettings();checkPin();renderAll();
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));renderAll()}
 function changeBaseMonth(value){
+ const relative=loadPaymentFilter.relative;
+ if(relative&&dateQuickFilter.value==='custom'&&accountPeriod.value!=='all'&&dateFrom.value===relative.from&&dateTo.value===relative.to){
+  const moved=PaymentExperience.restoreFilter({scope:'month',quick:'custom',rangeAnchor:relative.anchor},value);
+  dateFrom.value=moved.from;dateTo.value=moved.to;relative.from=moved.from;relative.to=moved.to;
+ }else loadPaymentFilter.relative=null;
  localStorage.setItem(MONTH_KEY,value);
  if(monthFilter.value!==value)monthFilter.value=value;
  if(homeMonthFilter.value!==value)homeMonthFilter.value=value;
+ if(typeof accountPeriod!=='undefined'&&accountPeriod.value!=='all')accountPeriod.value=value;
  renderAll();
 }
-function renderAll(){renderHome();renderTransactions();renderReports();renderCloseMonth();checkStorage()}
+function renderAll(){renderNextRegisteredMonths();renderSavedPaymentFilters();renderHome();renderTransactions();renderReports();renderCloseMonth();checkStorage()}
 function resetFilters(){
- search.value='';
- statusFilter.value='all';
- typeFilter.value='all';
- dateQuickFilter.value='all';
- customDateWrap.style.display='none';
- customDayWrap.style.display='none';
- customDueDay.value='';
- dateFrom.value='';
- dateTo.value='';
- clearDueDays(false);
+ search.value='';statusFilter.value='pending';typeFilter.value='expense';categoryFilter.value='all';bankFilter.value='';receiptFilter.value='all';dateQuickFilter.value='all';
+ customDateWrap.style.display='none';customDayWrap.style.display='none';customDueDay.value='';dateFrom.value='';dateTo.value='';clearDueDays(false);
+ if(typeof accountPeriod!=='undefined')accountPeriod.value=currentMonth();
+ selectedPaymentIds.clear();
 }
+function announcePayment(message){
+ if(typeof document==='undefined'||typeof document.getElementById!=='function')return;
+ const live=document.getElementById('paymentFeedback');if(!live)return;
+ live.textContent='';live.textContent=message;clearTimeout(announcePayment.timer);announcePayment.deadline=Date.now()+5000;announcePayment.timer=setTimeout(()=>expirePaymentFeedback(),5000);
+}
+function expirePaymentFeedback(now=Date.now()){
+ if(!announcePayment.deadline||now<announcePayment.deadline)return false;
+ if(typeof document!=='undefined'&&typeof document.getElementById==='function'){const live=document.getElementById('paymentFeedback');if(live)live.textContent=''}
+ clearTimeout(announcePayment.timer);announcePayment.deadline=0;return true;
+}
+function registerPaymentFeedbackLifecycle(){
+ if(registerPaymentFeedbackLifecycle.done)return;registerPaymentFeedbackLifecycle.done=true;
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)expirePaymentFeedback()});window.addEventListener('pageshow',()=>expirePaymentFeedback());window.addEventListener('focus',()=>expirePaymentFeedback());
+}
+function currentPaymentFilter(){return {period:accountPeriod.value,days:[...selectedDueDays],search:search.value,category:categoryFilter.value,bank:bankFilter.value,receipt:receiptFilter.value,status:statusFilter.value,quick:dateQuickFilter.value,from:dateFrom.value,to:dateTo.value,customDay:customDueDay.value,...(loadPaymentFilter.fixed&&dateQuickFilter.value==='custom'&&dateFrom.value===loadPaymentFilter.fixed.from&&dateTo.value===loadPaymentFilter.fixed.to?{rangeMode:'fixed'}:{}),...(loadPaymentFilter.relative&&dateQuickFilter.value==='custom'&&dateFrom.value===loadPaymentFilter.relative.from&&dateTo.value===loadPaymentFilter.relative.to?{rangeAnchor:loadPaymentFilter.relative.anchor}:{})}}
+function renderSavedPaymentFilters(){
+ const select=document.getElementById('savedFilterSelect');if(!select)return;
+ const quick=document.getElementById('quickPaymentFilters');if(quick)quick.innerHTML=(data.savedPaymentFilters||[]).slice(0,4).map((f,i)=>`<button type="button" onclick="loadPaymentFilter(${i})" title="${escapeHTML(f.name)}">${escapeHTML(f.name)} · ${PaymentExperience.filterLabel(f)}</button>`).join('');
+ const selected=select.value;select.innerHTML='<option value="">Escolha um favorito</option>'+(data.savedPaymentFilters||[]).map((f,i)=>`<option value="${i}">${escapeHTML(f.name)} · ${PaymentExperience.filterLabel(f)}</option>`).join('');select.value=selected;
+}
+function savePaymentFilter(){
+ const name=savedFilterName.value.trim();if(!name){announcePayment('Dê um nome ao filtro favorito.');return}
+ const previous=data.savedPaymentFilters||[];
+ data.savedPaymentFilters=[...previous,PaymentExperience.captureFilter(name,currentPaymentFilter())];
+ if(persist()===false){data.savedPaymentFilters=previous;announcePayment('Não foi possível salvar o favorito. Tente novamente.');return}
+ renderSavedPaymentFilters();announcePayment('Favorito salvo neste aparelho.');
+}
+function loadPaymentFilter(index=null){
+ if(index!==null){if(!Number.isSafeInteger(index)||index<0)return;savedFilterSelect.value=String(index)}
+ if(savedFilterSelect.value==='')return;
+ const saved=(data.savedPaymentFilters||[])[Number(savedFilterSelect.value)];if(!saved)return;
+ const f=PaymentExperience.restoreFilter(saved,currentMonth());
+ for(const [id,key] of [['search','search'],['categoryFilter','category'],['bankFilter','bank'],['receiptFilter','receipt'],['statusFilter','status'],['dateQuickFilter','quick'],['dateFrom','from'],['dateTo','to'],['customDueDay','customDay']])document.getElementById(id).value=f[key];
+ loadPaymentFilter.relative=null;loadPaymentFilter.fixed=f.rangeMode==='fixed'?{from:f.from,to:f.to}:null;
+ accountPeriod.value=f.period;selectedDueDays.clear();f.days.forEach(d=>selectedDueDays.add(d));selectedPaymentIds.clear();updateDueDayChips();toggleCustomDate();if(f.rangeMode==='relative')loadPaymentFilter.relative={anchor:f.rangeAnchor,from:f.from,to:f.to};renderTransactions();announcePayment('Favorito carregado: '+f.name+'. '+(f.scope==='all'?'Todos os meses. ':f.quick==='custom'&&f.rangeMode==='fixed'?'Mês selecionado. ':'Segue o mês selecionado. ')+(f.quick==='custom'?'Intervalo '+(f.rangeMode==='relative'?'relativo ao mês':'fixo')+': '+((f.from?f.from.split('-').reverse().join('/'):'sem início'))+' até '+((f.to?f.to.split('-').reverse().join('/'):'sem fim'))+'.':''));
+}
+function removePaymentFilter(){
+ if(savedFilterSelect.value==='')return;
+ const previous=data.savedPaymentFilters||[],index=Number(savedFilterSelect.value);if(!previous[index])return;
+ data.savedPaymentFilters=previous.filter((_,i)=>i!==index);
+ if(persist()===false){data.savedPaymentFilters=previous;announcePayment('Não foi possível remover o favorito.');return}
+ renderSavedPaymentFilters();announcePayment('Favorito removido deste aparelho.');
+}
+
+function toggleAccountFilters(){const show=accountFiltersPanel.style.display==='none';accountFiltersPanel.style.display=show?'block':'none';accountFilterButton.setAttribute('aria-expanded',String(show))}
+function changeAccountPeriod(){selectedPaymentIds.clear();if(accountPeriod.value!=='all')changeBaseMonth(accountPeriod.value);else renderTransactions()}
+function setAccountTab(mode){statusFilter.value=mode;dateQuickFilter.value='all';selectedPaymentIds.clear();renderTransactions()}
+function addDueDay(){const day=Number(customDueDay.value);if(!Number.isInteger(day)||day<1||day>31){alert('Informe um dia de 1 a 31.');return}selectedDueDays.add(day);selectedPaymentIds.clear();updateDueDayChips();renderTransactions()}
 function openFiltered(kind){
- showScreen('transactions');
  resetFilters();
- if(kind==='pending'){statusFilter.value='pending';typeFilter.value='expense';}
- if(kind==='income'){typeFilter.value='income';}
- if(kind==='paidExpense'){statusFilter.value='paid';typeFilter.value='expense';}
- if(kind==='expense'){typeFilter.value='expense';}
- if(kind==='late'){statusFilter.value='late';typeFilter.value='expense';}
- if(kind==='previousOverdue'){statusFilter.value='previousOverdue';typeFilter.value='expense';}
- if(kind==='generalPending'){statusFilter.value='generalPending';typeFilter.value='expense';}
- if(kind==='upcomingAll'){statusFilter.value='upcomingAll';typeFilter.value='expense';}
- if(kind==='today'){statusFilter.value='pending';typeFilter.value='expense';dateQuickFilter.value='today';}
- if(kind==='7'){statusFilter.value='pending';typeFilter.value='expense';dateQuickFilter.value='7';}
- renderTransactions();
+ if(['late','previousOverdue','generalPending','upcomingAll','allPending','today','7'].includes(kind))accountPeriod.value='all';
+ if(kind==='paidExpense')statusFilter.value='paid';
+ if(['late','previousOverdue','generalPending','upcomingAll'].includes(kind))statusFilter.value=kind;
+ if(kind==='today')dateQuickFilter.value='today';if(kind==='7')dateQuickFilter.value='7';
+ showScreen('transactions');
 }
 function openReport(){showScreen('reports');}
 
@@ -1050,7 +1186,7 @@ function filteredMonth(){return data.transactions.filter(t=>ym(t.date)===current
 function renderHome(){
  const tx=filteredMonth(),inc=tx.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0),exp=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+totalDue(b),0);
  const pending=tx.filter(t=>t.type==='expense'&&!t.paid).reduce((a,b)=>a+remainingValue(b),0);
- const paid=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+paidValue(b),0);
+ const paid=monthlyPaidTotal(data.transactions,currentMonth());
  const monthStart=currentMonth()+'-01';
  const previousOverdueItems=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&t.date<monthStart&&daysUntil(t.date)<0);
  const previousOverdue=previousOverdueItems.reduce((a,b)=>a+remainingValue(b),0);
@@ -1060,6 +1196,8 @@ function renderHome(){
  const overdue=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)<0).sort((a,b)=>a.date.localeCompare(b.date));
  const todayList=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)===0).sort((a,b)=>a.date.localeCompare(b.date));
  const next7=data.transactions.filter(t=>t.type==='expense'&&!t.paid&&daysUntil(t.date)>0&&daysUntil(t.date)<=7).sort((a,b)=>a.date.localeCompare(b.date));
+ const undatedPayments=undatedPaidTotal(data.transactions);homeUndatedNotice.textContent=undatedPayments?'Há pagamentos antigos sem data. Consulte Pagamentos → Todos os meses.':'';
+ payHomePending.textContent=money(pending);payHomePaid.textContent=money(paid);payHomeOverdue.textContent=money(overdue.reduce((sum,t)=>sum+remainingValue(t),0));
  const attention=[...overdue,...todayList,...next7].slice(0,6);
  const overdueValue=overdue.reduce((a,b)=>a+remainingValue(b),0),todayValue=todayList.reduce((a,b)=>a+remainingValue(b),0),next7Value=next7.reduce((a,b)=>a+remainingValue(b),0);
  attentionSummary.innerHTML=`<div style="font-weight:900;font-size:16px;margin-bottom:6px">Resumo de vencimentos</div>
@@ -1072,6 +1210,18 @@ function renderHome(){
  renderBudgets();
 }
 
+function renderNextRegisteredMonths(){
+ const target=document.getElementById('nextRegisteredMonths');if(!target)return;
+ const months=PaymentExperience.nextRegisteredMonths(data.transactions,currentMonth(),remainingValue);
+ target.innerHTML='<div class="section-head"><h2>Próximos 3 meses</h2></div><div class="next-registered-grid">'+months.map(m=>`<button onclick="openRegisteredMonth('${m.month}')"><span>${new Date(m.month+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'short',year:'numeric'})}</span><strong>${money(m.cents/100)}</strong><small>${m.count} conta(s) em aberto</small></button>`).join('')+'</div><div class="note">Somente contas já cadastradas após o mês-base; não inclui contas não cadastradas.</div>';
+}
+function openRegisteredMonth(month){
+ if(!/^\d{4}-\d{2}$/.test(month))return;
+ resetFilters();statusFilter.value='pending';
+ if(![...monthFilter.options].some(o=>o.value===month)){for(const select of [monthFilter,homeMonthFilter,accountPeriod]){const option=document.createElement('option');option.value=month;option.textContent=new Date(month+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});select.appendChild(option)}}
+ accountPeriod.value=month;changeBaseMonth(month);showScreen('transactions');
+}
+
 function renderFinancialHealth(income,expense,pending){
  let cls='health-ok',title='Dentro do orçamento',text='As despesas estão sob controle.';
  if(income<=0&&expense>0){cls='health-warn';title='Atenção';text='Cadastre suas receitas para acompanhar o saldo real.'}
@@ -1082,78 +1232,67 @@ function renderFinancialHealth(income,expense,pending){
 
 function renderBudgets(){
  const month=filteredMonth(),cats=Object.keys(data.budgets);
- homeBudgets.innerHTML=cats.length?cats.map(c=>{let spent=month.filter(t=>t.type==='expense'&&t.category===c).reduce((a,b)=>a+totalDue(b),0),limit=data.budgets[c],pct=Math.min(100,limit?spent/limit*100:0);return `<div class="card budget"><div class="budget-top"><strong>${c}</strong><span>${money(spent)} de ${money(limit)}</span></div><div class="progress"><span style="width:${pct}%"></span></div></div>`}).join(''):'<div class="empty">Nenhum orçamento definido.</div>';
+ homeBudgets.innerHTML=cats.length?cats.map(c=>{let spent=month.filter(t=>t.type==='expense'&&t.category===c).reduce((a,b)=>a+totalDue(b),0),limit=data.budgets[c],pct=Math.min(100,limit?spent/limit*100:0);return `<div class="card budget"><div class="budget-top"><strong>${escapeHTML(c)}</strong><span>${money(spent)} de ${money(limit)}</span></div><div class="progress"><span style="width:${pct}%"></span></div></div>`}).join(''):'<div class="empty">Nenhum orçamento definido.</div>';
 }
 function renderTransactions(){
- let q=(search.value||'').toLowerCase(),st=statusFilter.value,df=dateQuickFilter.value,tp=typeFilter.value,cf=categoryFilter.value,bf=(bankFilter.value||'').toLowerCase(),rf=receiptFilter.value;
- const globalStatuses=['late','previousOverdue','generalPending','upcomingAll'];
- let list=globalStatuses.includes(st) ? [...data.transactions] : filteredMonth();
- const monthStart=currentMonth()+'-01';
- if(q)list=list.filter(t=>(t.title+' '+t.category+' '+(t.person||'')).toLowerCase().includes(q));
- if(st==='pending')list=list.filter(t=>!t.paid);
- if(st==='paid')list=list.filter(t=>t.paid);
- if(st==='late')list=list.filter(t=>!t.paid&&t.type==='expense'&&daysUntil(t.date)<0);
- if(st==='previousOverdue')list=list.filter(t=>!t.paid&&t.type==='expense'&&t.date<monthStart&&daysUntil(t.date)<0);
- if(st==='generalPending')list=list.filter(t=>!t.paid&&t.type==='expense'&&(ym(t.date)===currentMonth()||(t.date<monthStart&&daysUntil(t.date)<0)));
- if(st==='upcomingAll')list=list.filter(t=>!t.paid&&t.type==='expense'&&daysUntil(t.date)>=0);
- if(tp!=='all')list=list.filter(t=>t.type===tp);
- if(cf!=='all')list=list.filter(t=>t.category===cf);
- if(bf)list=list.filter(t=>(t.paymentBank||'').toLowerCase().includes(bf));
- if(rf==='with')list=list.filter(t=>!!latestReceipt(t));
- if(rf==='without')list=list.filter(t=>!latestReceipt(t));
-
- monthFilter.disabled=globalStatuses.includes(st);
- monthFilter.style.opacity=globalStatuses.includes(st)?'.55':'1';
- monthFilter.title=globalStatuses.includes(st)?'Este filtro considera contas de todos os meses.':'';
-
- if(df==='today')list=list.filter(t=>daysUntil(t.date)===0);
- if(['7','15','30'].includes(df)){const n=Number(df);list=list.filter(t=>daysUntil(t.date)>=0&&daysUntil(t.date)<=n)}
- if(selectedDueDays.size){list=list.filter(t=>selectedDueDays.has(new Date(t.date+'T12:00:00').getDate()));}
- if(df==='dayCustom'){
-   const day=Number(customDueDay.value);
-   if(day>=1&&day<=31)list=list.filter(t=>new Date(t.date+'T12:00:00').getDate()===day);
+ if(typeof loadPaymentFilter==='function'&&loadPaymentFilter.fixed){const f=loadPaymentFilter.fixed;if(dateQuickFilter.value!=='custom'||dateFrom.value!==f.from||dateTo.value!==f.to)loadPaymentFilter.fixed=null}
+ if(typeof loadPaymentFilter==='function'&&loadPaymentFilter.relative){const r=loadPaymentFilter.relative;if(dateQuickFilter.value!=='custom'||accountPeriod.value==='all'||dateFrom.value!==r.from||dateTo.value!==r.to)loadPaymentFilter.relative=null}
+ const q=search.value.trim().toLowerCase(),st=statusFilter.value,cat=categoryFilter.value,bf=bankFilter.value.trim().toLowerCase(),rf=receiptFilter.value,period=accountPeriod.value||currentMonth(),paidMode=st==='paid';
+ let list=data.transactions.filter(t=>t.type==='expense');
+ if(paidMode){list=list.filter(t=>period==='all'?paidValue(t)>0:monthlyPaidTotal([t],period)>0)}
+ else{
+  list=list.filter(t=>!t.paid);
+  if(period!=='all')list=list.filter(t=>ym(t.date)===period);
+  if(st==='late')list=list.filter(t=>daysUntil(t.date)<0);
+  if(st==='previousOverdue')list=list.filter(t=>t.date<currentMonth()+'-01'&&daysUntil(t.date)<0);
+  if(st==='generalPending')list=list.filter(t=>ym(t.date)===currentMonth()||daysUntil(t.date)<0);
+  if(st==='upcomingAll')list=list.filter(t=>daysUntil(t.date)>=0);
  }
- if(df==='custom'){
-   if(dateFrom.value)list=list.filter(t=>t.date>=dateFrom.value);
-   if(dateTo.value)list=list.filter(t=>t.date<=dateTo.value);
- }
-
- list.sort((a,b)=>a.date.localeCompare(b.date));
- const totalExpense=expenseTotalShown(list);
- const totalIncome=list.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0);
- let summaryTitle='Total do filtro';
- if(st==='late')summaryTitle='Total das contas vencidas — todos os meses';
- else if(st==='previousOverdue')summaryTitle='Vencidas de meses anteriores';
- else if(st==='generalPending')summaryTitle='Total pendente geral — mês + atrasadas';
- else if(st==='upcomingAll')summaryTitle='A vencer — visão geral de todos os meses';
- else if(df==='today')summaryTitle='Total que vence hoje';
- else if(df==='7')summaryTitle='Total dos próximos 7 dias';
- else if(df==='15')summaryTitle='Total dos próximos 15 dias';
- else if(df==='30')summaryTitle='Total dos próximos 30 dias';
- else if(selectedDueDays.size)summaryTitle=`Total dos vencimentos nos dias ${[...selectedDueDays].sort((a,b)=>a-b).map(d=>String(d).padStart(2,'0')).join(' e ')}`;
- filterSummary.innerHTML=`<div style="font-size:13px;color:var(--muted);font-weight:850">${summaryTitle}</div>
- <div class="value sm" style="margin-top:6px">${money(totalExpense)}</div>
- <div class="item-meta">${list.length} lançamento(s)${totalIncome?` • Receitas: ${money(totalIncome)}`:''}${globalStatuses.includes(st)?' • Inclui todos os meses':''}</div>`;
- const closed=isMonthClosed(currentMonth());
- closedMonthBanner.innerHTML=closed?`<div class="closed-banner">🔒 Este mês está fechado. Reabra em Relatórios para fazer alterações.</div>`:'';
- txCount.textContent=list.length+' itens';
- txList.innerHTML=list.map(t=>itemHTML(t,true)).join('')||'<div class="empty">Nenhum lançamento neste filtro.</div>';
+ if(q)list=list.filter(t=>(String(t.title||'')+' '+String(t.category||'')+' '+String(t.person||'')).toLowerCase().includes(q));
+ if(cat!=='all')list=list.filter(t=>t.category===cat);
+ if(bf)list=list.filter(t=>String(t.paymentBank||'').toLowerCase().includes(bf)||t.paymentHistory?.some(h=>String(h.bank||'').toLowerCase().includes(bf)));
+ if(rf==='with')list=list.filter(t=>latestReceipt(t));if(rf==='without')list=list.filter(t=>!latestReceipt(t));
+ if(selectedDueDays.size)list=list.filter(t=>selectedDueDays.has(Number(t.date.slice(8,10))));
+ const mode=dateQuickFilter.value;
+ if(mode==='today')list=list.filter(t=>daysUntil(t.date)===0);
+ if(['7','15','30'].includes(mode))list=list.filter(t=>daysUntil(t.date)>=0&&daysUntil(t.date)<=Number(mode));
+ if(mode==='dayCustom'&&customDueDay.value)list=list.filter(t=>Number(t.date.slice(8,10))===Number(customDueDay.value));
+ if(mode==='custom'){if(dateFrom.value)list=list.filter(t=>t.date>=dateFrom.value);if(dateTo.value)list=list.filter(t=>t.date<=dateTo.value)}
+ list.sort((a,b)=>a.date.localeCompare(b.date)||String(a.title||'').localeCompare(String(b.title||''),'pt-BR'));
+ // A changed filter cannot leave an invisible account selected for the next batch.
+ const visibleIds=new Set(list.map(t=>t.id));for(const id of [...selectedPaymentIds])if(!visibleIds.has(id)||paidMode)selectedPaymentIds.delete(id);
+ const total=paidMode?(period==='all'?list.reduce((sum,t)=>sum+Math.round(paidValue(t)*100),0)/100:monthlyPaidTotal(list,period)):list.reduce((sum,t)=>sum+Math.round(remainingValue(t)*100),0)/100;
+ const monthLabel=period==='all'?'Todos os meses':new Date(period+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+ const dayLabel=[...selectedDueDays].sort((a,b)=>a-b).map(d=>String(d).padStart(2,'0')).join(' e ');
+ let summaryTitle=paidMode?'Pago neste filtro':'A pagar neste filtro';if(dayLabel)summaryTitle+=` · dias ${dayLabel}`;
+ filterSummary.innerHTML=`<div class="eyebrow">${summaryTitle}</div><div class="value sm" style="margin-top:6px">${money(total)}</div><div class="item-meta">${list.length} ${list.length===1?'conta':'contas'} · ${monthLabel}</div>${mode==='custom'?`<div class="item-meta">Intervalo ${typeof loadPaymentFilter==='function'&&loadPaymentFilter.relative?'relativo ao mês':'fixo'}: ${(dateFrom.value?dateFrom.value.split('-').reverse().join('/'):'sem início')} até ${(dateTo.value?dateTo.value.split('-').reverse().join('/'):'sem fim')}</div>`:''}${paidMode?'<div class="payment-period-note">Inclui pagamentos parciais. O valor é o pago no período; as datas na lista são os vencimentos.</div>':''}`;
+ const activeFilters=(q?1:0)+(cat!=='all'?1:0)+(bf?1:0)+(rf!=='all'?1:0)+selectedDueDays.size+(mode!=='all'?1:0);
+ accountFilterButton.textContent=activeFilters?`Filtrar (${activeFilters})`:'Filtrar';
+ accountPendingTab.classList.toggle('active',!paidMode);accountPaidTab.classList.toggle('active',paidMode);
+ const closed=period!=='all'&&isMonthClosed(period);closedMonthBanner.innerHTML=closed?'<div class="closed-banner">Este mês está fechado. Reabra em Relatórios para fazer alterações.</div>':'';
+ txCount.textContent=list.length+(list.length===1?' conta':' contas');
+ txList.innerHTML=list.map(t=>itemHTML(t,true,paidMode?(period==='all'?paidValue(t):monthlyPaidTotal([t],period)):null)).join('')||'<div class="empty">Nenhuma conta neste filtro.</div>';
  updatePaymentSelectionBar();
 }
 
 function toggleDueDay(day){
+ if(!Number.isInteger(day)||day<1||day>31)return;selectedPaymentIds.clear();
  if(selectedDueDays.has(day)) selectedDueDays.delete(day); else selectedDueDays.add(day);
  updateDueDayChips();
  renderTransactions();
 }
 function clearDueDays(render=true){
- selectedDueDays.clear();
+ selectedDueDays.clear();selectedPaymentIds.clear();
  updateDueDayChips();
  if(render) renderTransactions();
 }
 function updateDueDayChips(){
  document.querySelectorAll('.due-chip').forEach(btn=>btn.classList.toggle('active',selectedDueDays.has(Number(btn.dataset.day))));
  const days=[...selectedDueDays].sort((a,b)=>a-b);
+ if(typeof document.getElementById==='function'){
+  const group=document.getElementById('dueDayChips');
+  if(group){group.querySelectorAll('[data-custom-day]').forEach(b=>b.remove());for(const day of days.filter(d=>![5,10,15,20,25,30].includes(d))){const button=document.createElement('button');button.type='button';button.className='due-chip active';button.dataset.day=String(day);button.dataset.customDay='true';button.textContent=String(day).padStart(2,'0');button.onclick=()=>toggleDueDay(day);group.insertBefore(button,group.lastElementChild)}}
+ }
  if(typeof dueFilterNote!=='undefined') dueFilterNote.textContent=days.length?`${days.length} vencimento(s) selecionado(s): dias ${days.map(d=>String(d).padStart(2,'0')).join(' e ')}`:'Nenhum dia selecionado. Toque para marcar; toque novamente para desmarcar.';
 }
 
@@ -1161,14 +1300,26 @@ function toggleCustomDate(){
  customDateWrap.style.display=dateQuickFilter.value==='custom'?'block':'none';
  customDayWrap.style.display=dateQuickFilter.value==='dayCustom'?'block':'none';
 }
-function itemHTML(t,actions){
+function itemHTML(t,actions,displayAmount=null){
  let d=daysUntil(t.date),status=t.paid?(t.type==='income'?'Recebido':'Pago'):t.type==='income'?'A receber':d<0?'Atrasado':d===0?'Vence hoje':d<=7?`Vence em ${d} dias`:new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR');
- if(t.type==='expense'&&paidValue(t)>0&&!t.paid)status=`Parcial${d<0?' · atrasado':''} · Falta ${money(remainingValue(t))}`;
+ if(t.type==='expense'&&paidValue(t)>0&&!t.paid)status=`Parcial${d<0?' · atrasado':''}`;
  let cls=t.paid?'ok':(t.type==='expense'&&d<0)?'late':d<=7?'soon':'';
+ const dueDate=new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR');
+ const dueStatus=(status===dueDate)?dueDate:`${dueDate}<span class="due-tag">${status}</span>`;
  const canSelect=actions&&t.type==='expense'&&!t.paid;
  const selected=selectedPaymentIds.has(t.id);
- const selectButton=canSelect?`<button class="select-payment-btn ${selected?'active':''}" onclick="event.stopPropagation();togglePaymentSelection(${t.id})" aria-label="${selected?'Desmarcar':'Selecionar'} ${t.title}">${selected?'✓':''}</button>`:'';
- return `<div class="item ${selected?'selected-for-payment':''}">${selectButton}<div class="ico">${icons[t.category]||'🧾'}</div><div class="item-main" onclick="handleTransactionClick(${t.id})"><div class="item-title">${t.title}</div><div class="item-meta">${t.category}${t.person?' • '+t.person:''}${t.paid&&t.paymentBank?' • Pago via '+t.paymentBank:''}</div></div><div><div class="amount">${t.type==='income'?'+':'-'} ${money(t.type==='expense'?(t.paid?totalDue(t):remainingValue(t)):t.value)}</div><div class="status ${cls}">${status}</div></div>${actions?`<div class="row-actions">${latestReceipt(t)?`<button class="receipt-btn" onclick="event.stopPropagation();openReceipt(${t.id})">🧾</button>`:''}<button class="icon-btn" aria-label="Editar" onclick="event.stopPropagation();editTransaction(${t.id})">✎</button><button class="icon-btn" aria-label="Mais opções" onclick="event.stopPropagation();openTransactionActions(${t.id})">⋯</button></div>`:''}</div>`;
+ const savedTitle=String(t.title||'');
+ const suffix=savedTitle.match(/\s+\((\d+)\/(\d+)\)$/);
+ const showInstallment=t.type==='expense'&&(t.groupId!=null||t.seriesId!=null)&&suffix&&
+   Number.isSafeInteger(Number(suffix[1]))&&Number.isSafeInteger(Number(suffix[2]))&&Number(suffix[1])>0&&Number(suffix[1])<=Number(suffix[2]);
+ const displayTitle=showInstallment?savedTitle.slice(0,suffix.index):savedTitle;
+ const metaParts=[];
+ if(showInstallment)metaParts.push(`<strong>Parcela ${suffix[1]}/${suffix[2]}</strong>`);
+ if(!showInstallment&&t.category)metaParts.push(escapeHTML(t.category));
+ if(!showInstallment&&t.person)metaParts.push(escapeHTML(t.person));
+ if(!showInstallment&&t.paid&&t.paymentBank)metaParts.push('Pago via '+escapeHTML(t.paymentBank));
+ const selectButton=canSelect?`<button class="select-payment-btn ${selected?'active':''}" onclick="event.stopPropagation();togglePaymentSelection(${t.id})" aria-label="${selected?'Desmarcar':'Selecionar'} ${escapeHTML(t.title)}" title="${selected?'Desmarcar':'Selecionar'} para lote">${selected?'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>':''}</button>`:'';
+ return `<div class="item transaction-item ${canSelect?'selectable':''} ${selected?'selected-for-payment':''}">${selectButton}<div class="ico">${icons[t.category]||'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2ZM9 7h6M9 11h6M9 15h4"/></svg>'}</div><div class="item-main" onclick="handleTransactionClick(${t.id})"><div class="item-title">${escapeHTML(displayTitle)}</div><div class="item-meta">${metaParts.join(' • ')}</div></div><div class="item-financial"><div class="amount">${t.type==='income'?'+':'-'} ${money(displayAmount!==null?displayAmount:(t.type==='expense'?(t.paid?totalDue(t):remainingValue(t)):t.value))}</div><div class="status ${cls}">${dueStatus}</div></div>${actions?`<div class="row-actions">${latestReceipt(t)?`<button class="receipt-btn" onclick="event.stopPropagation();openReceipt(${t.id})" aria-label="Abrir comprovante"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2ZM9 7h6M9 11h6M9 15h4"/></svg></button>`:''}${t.type==='expense'&&!t.paid?`<button class="icon-btn pay-action-btn" aria-label="Registrar pagamento" onclick="event.stopPropagation();openPayment(${t.id})">Pagar</button>`:`<button class="icon-btn" aria-label="Editar" onclick="event.stopPropagation();editTransaction(${t.id})"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L21 7l-5-5L4 14Z"/></svg></button>`}<button class="icon-btn" aria-label="Mais opções" onclick="event.stopPropagation();openTransactionActions(${t.id})"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h.01M12 12h.01M19 12h.01"/></svg></button></div>`:''}</div>`;
 }
 function togglePaymentSelection(id){
  const t=data.transactions.find(x=>x.id===id);
@@ -1204,37 +1355,40 @@ function updatePaymentSelectionBar(){
 }
 
 function openBatchPayment(){
+ confirmPayment.completed=false;confirmPayment.busy=false;
  const items=getSelectedPaymentItems();
- if(!items.length){
-   alert('Selecione pelo menos uma conta pendente.');
-   return;
- }
- const closedItems=items.filter(t=>isMonthClosed(ym(t.date)));
- if(closedItems.length){
-   alert('Uma ou mais contas pertencem a um mês fechado. Reabra o mês antes de pagar.');
-   return;
- }
+ if(!items.length){alert('Selecione pelo menos uma conta pendente.');return}
+ if(items.some(t=>isMonthClosed(ym(t.date)))){alert('Uma ou mais contas pertencem a um mês fechado. Reabra o mês antes de pagar.');return}
  paymentMode='batch';
  postponePaymentBtn.style.display='none';
- paymentAmountWrap.style.display='none';paymentInterestWrap.style.display='none';paymentInterest.value='';undoLastPaymentBtn.style.display='none';paymentHistoryInfo.textContent='';
- paymentTxId.value='';
- paymentDate.value=new Date().toISOString().slice(0,10);
- paymentBank.value='';
- currentPaymentReceipt='';
- const total=items.reduce((sum,t)=>sum+remainingValue(t),0);
+ paymentAmountWrap.style.display='none';paymentInterestWrap.style.display='block';paymentInterest.value='';
+ paymentInterestLabel.textContent='Juros ou multa do grupo inteiro (opcional)';
+ paymentInterestNote.textContent='Informe uma única vez o valor total de juros ou multa dessas contas. O app soma esse adicional só uma vez e o distribui proporcionalmente entre os registros, sem você preencher conta por conta.';
+ undoLastPaymentBtn.style.display='none';paymentHistoryInfo.textContent='';
+ paymentTxId.value='';paymentDate.value=localDateISO();paymentBank.value='';currentPaymentReceipt='';
  paymentAccountSummary.innerHTML=`
    <div style="font-weight:900;font-size:16px">${items.length} ${items.length===1?'conta selecionada':'contas selecionadas'}</div>
-   <div class="batch-list">
-     ${items.map(t=>`<div class="batch-item"><span>${escapeHTML(t.title)}</span><strong>${money(remainingValue(t))}</strong></div>`).join('')}
-   </div>
-   <div class="kpi-line" style="margin-top:6px"><span>Total a pagar</span><strong>${money(total)}</strong></div>`;
+   <div class="batch-list">${items.map(t=>`<div class="batch-item"><span>${escapeHTML(t.title)}</span><strong>${money(remainingValue(t))}</strong></div>`).join('')}</div>
+   <div class="kpi-line"><span>Contas selecionadas</span><strong id="batchPaymentPrincipal"></strong></div>
+   <div class="kpi-line"><span>Juros/multa do grupo</span><strong id="batchPaymentInterest"></strong></div>
+   <div class="kpi-line"><span>Total a registrar</span><strong id="batchPaymentTotal"></strong></div>
+   <div id="batchPaymentError" class="note" role="alert"></div>`;
  updatePaymentReceiptPreview();
- const payButton=paymentOverlay.querySelector('.primary');
- if(payButton)payButton.textContent='Pagar contas selecionadas';
- paymentOverlay.classList.add('show');
+ const payButton=paymentOverlay.querySelector('.primary');if(payButton)payButton.textContent='Registrar contas selecionadas';
+ updateBatchPaymentTotal();paymentOverlay.classList.add('show');
+}
+function updateBatchPaymentTotal(){
+ if(paymentMode!=='batch')return;
+ const items=getSelectedPaymentItems(),interest=readPaymentInterest(),plan=interest===null?null:batchPaymentPlan(items,interest);
+ batchPaymentPrincipal.textContent=money(items.reduce((sum,t)=>sum+Math.round(remainingValue(t)*100),0)/100);
+ batchPaymentInterest.textContent=interest===null?'Valor inválido':money(interest);
+ batchPaymentTotal.textContent=plan?money(plan.totalCents/100):'—';
+ batchPaymentError.textContent=plan?'':'Confira os valores. Informe os juros em reais, com vírgula para os centavos.';
+ const button=paymentOverlay.querySelector('.primary');if(button)button.disabled=!plan;
 }
 
-function openTransaction(){editId.value='';currentReceipt='';updateReceiptPreview();txModalTitle.textContent='Novo lançamento';tTitle.value='';tValue.value='';tDate.value=new Date().toISOString().slice(0,10);tType.value='expense';tPaid.value='false';tCategory.value='Água';tPerson.value='';tRepeat.value='none';tInstallments.value=1;tNote.value='';txOverlay.classList.add('show')}
+function updateInitialPaymentDate(){initialPaymentDateWrap.style.display=tPaid.value==='true'&&tType.value==='expense'?'block':'none'}
+function openTransaction(){saveTransaction.completed=false;saveTransaction.busy=false;editId.value='';currentReceipt='';updateReceiptPreview();txModalTitle.textContent='Novo lançamento';tTitle.value='';tValue.value='';tDate.value=localDateISO();tType.value='expense';tPaid.value='false';tPaidDate.value=localDateISO();tPaidDate.disabled=false;initialPaymentDateNote.textContent='Use a data em que você realmente pagou.';updateInitialPaymentDate();tCategory.value='Água';tPerson.value='';tRepeat.value='none';tInstallments.value=1;tNote.value='';txOverlay.classList.add('show')}
 function duplicateTransaction(id){
  const source=data.transactions.find(x=>x.id===id);if(!source)return;
  const draft=duplicateDraft(source);
@@ -1245,29 +1399,503 @@ function duplicateTransaction(id){
  tPaid.value='false';tRepeat.value='none';tInstallments.value=1;
 }
 function closeTransaction(){txOverlay.classList.remove('show')}
-function editTransaction(id){const t=data.transactions.find(x=>x.id===id);if(!t)return;editId.value=id;txModalTitle.textContent='Editar lançamento';tTitle.value=t.title;tValue.value=String(t.value).replace('.',',');tDate.value=t.date;tType.value=t.type;tPaid.value=String(t.paid);tCategory.value=t.category;tPerson.value=t.person||'';tRepeat.value=t.repeat||'none';tInstallments.value=1;tNote.value=t.note||'';currentReceipt=t.receipt||'';updateReceiptPreview();txOverlay.classList.add('show')}
+function editTransaction(id){saveTransaction.completed=false;saveTransaction.busy=false;const t=data.transactions.find(x=>x.id===id);if(!t)return;editId.value=id;txModalTitle.textContent='Editar lançamento';tTitle.value=t.title;tValue.value=String(t.value).replace('.',',');tDate.value=t.date;tType.value=t.type;tPaid.value=String(t.paid);tPaidDate.value=t.paymentDate||'';tPaidDate.disabled=!!t.paymentHistory?.length;initialPaymentDateNote.textContent=tPaidDate.disabled?'A data faz parte do histórico. Desfaça o pagamento para corrigir.':'Se a data antiga não for conhecida, deixe em branco; não será inventada.';updateInitialPaymentDate();tCategory.value=t.category;tPerson.value=t.person||'';tRepeat.value=t.repeat||'none';tInstallments.value=1;tNote.value=t.note||'';currentReceipt=t.receipt||'';updateReceiptPreview();txOverlay.classList.add('show')}
 function saveTransaction(){
+ if(saveTransaction.busy||saveTransaction.completed)return;
+ saveTransaction.busy=true;
+ try{
  if(!ensureMonthOpen(tDate.value))return;
  const value=parseMoney(tValue.value);if(!tTitle.value||!value||!tDate.value){alert('Preencha descrição, valor e data.');return}
  const id=Number(editId.value);
+ const initialPaidDate=typeof tPaidDate!=='undefined'?tPaidDate.value:'';
+ if(tType.value==='expense'&&tPaid.value==='true'){const original=id?data.transactions.find(t=>t.id===id):null;if((initialPaidDate&&!validRecordedPaymentDate(initialPaidDate))||((!original||!original.paid)&&!initialPaidDate)){alert('Informe a data real do pagamento.');return}}
  if(id){const original=data.transactions.find(x=>x.id===id);if(!original||!ensureMonthOpen(original.date)||!canEditRecordedPayment(original,value,tPaid.value==='true',tType.value))return}
- if(id){const i=data.transactions.findIndex(x=>x.id===id);data.transactions[i]={...data.transactions[i],title:tTitle.value,value,date:tDate.value,type:tType.value,paid:tPaid.value==='true',category:tCategory.value,person:tPerson.value,repeat:tRepeat.value,note:tNote.value,receipt:currentReceipt}}
+ const previous=data.transactions;
+ data.transactions=data.transactions.slice();
+ if(id){const i=data.transactions.findIndex(x=>x.id===id);data.transactions[i]={...data.transactions[i],title:tTitle.value,value,date:tDate.value,type:tType.value,paid:tPaid.value==='true',category:tCategory.value,person:tPerson.value,repeat:tRepeat.value,note:tNote.value,receipt:currentReceipt,...(tType.value==='expense'&&tPaid.value==='true'&&initialPaidDate&&!data.transactions[i].paymentHistory?.length?{paymentDate:initialPaidDate}:{})}}
  else{
    const n=Math.max(1,parseInt(tInstallments.value||1));
    const groupId=Date.now(),seriesId=tRepeat.value==='monthly'?groupId:null;
    const count=tRepeat.value==='monthly'&&n===1?24:n;
-   for(let i=0;i<count;i++){data.transactions.push({id:groupId+i,groupId,seriesId,title:n>1?`${tTitle.value} (${i+1}/${n})`:tTitle.value,value,date:dateInMonth(tDate.value,i,Number(tDate.value.slice(8,10))),dueDay:Number(tDate.value.slice(8,10)),type:tType.value,paid:i===0&&tPaid.value==='true',category:tCategory.value,person:tPerson.value,repeat:tRepeat.value,note:tNote.value,receipt:i===0?currentReceipt:'',recurringGenerated:tRepeat.value==='monthly'})}
+   const drafts=[];
+   for(let i=0;i<count;i++){drafts.push({id:groupId+i,groupId,seriesId,title:n>1?`${tTitle.value} (${i+1}/${n})`:tTitle.value,value,date:dateInMonth(tDate.value,i,Number(tDate.value.slice(8,10))),dueDay:Number(tDate.value.slice(8,10)),type:tType.value,paid:i===0&&tPaid.value==='true',category:tCategory.value,person:tPerson.value,repeat:tRepeat.value,note:tNote.value,receipt:i===0?currentReceipt:'',recurringGenerated:tRepeat.value==='monthly',...(i===0&&tType.value==='expense'&&tPaid.value==='true'?{paymentDate:initialPaidDate}:{})})}
+   const duplicates=PaymentExperience.possibleDuplicates(previous,drafts);
+   if(duplicates.length&&!confirm(`Possível duplicidade: ${duplicates.length} conta(s) já cadastrada(s) com o mesmo nome, valor e vencimento, inclusive parcelas futuras.\nNada será apagado ou mesclado.\nOK: continuar e cadastrar mesmo assim. Cancelar: voltar sem alterar nada.`)){data.transactions=previous;return}
+   data.transactions.push(...drafts);
  }
- persist();closeTransaction();renderAll()
+ if(persist()===false){data.transactions=previous;if(typeof announcePayment==='function')announcePayment('Não foi possível salvar a conta. Seus campos foram mantidos.');return}
+ saveTransaction.completed=true;
+ if(typeof announcePayment==='function')announcePayment('Conta salva neste aparelho.');
+ closeTransaction();renderAll()
+ }finally{saveTransaction.busy=false}
 }
-function handleTransactionClick(id){
- const t=data.transactions.find(x=>x.id===id);
- if(!t)return;
- if(t.type==='expense'&&!t.paid){openPayment(id);return}
- openDetails(id);
-}
+function handleTransactionClick(id){if(data.transactions.some(t=>t.id===id))openDetails(id)}
 function togglePaid(id){handleTransactionClick(id)}
 function transactionGroup(t){return t.groupId??t.seriesId??t.id}
+// PAYMENT_EXPERIENCE_START
+/* Pure payment experience helpers; mirrored inline in index.html. */
+const PaymentExperience=(()=>{
+ function validMonth(value){return /^\d{4}-(0[1-9]|1[0-2])$/.test(value||'')}
+ function monthDays(month){const [y,m]=month.split('-').map(Number);return new Date(y,m,0,12).getDate()}
+ function validDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(value||'')&&validMonth(value.slice(0,7))&&Number(value.slice(8))>=1&&Number(value.slice(8))<=monthDays(value.slice(0,7))}
+ function rangeAnchor(input){
+  if(input.scope==='all'||input.period==='all'||input.quick!=='custom'||input.rangeMode==='fixed')return null;
+  const a=input.rangeAnchor;
+  if(a&&validMonth(a.month)&&[a.from,a.to].every(d=>!d||validDate(d))&&(a.from||a.to)&&(!a.from||!a.to||a.from<=a.to))return {month:a.month,from:a.from||'',to:a.to||''};
+  // Legacy inference requires two valid ordered endpoints in one calendar month.
+  if(!a&&!input.rangeMode&&validDate(input.from)&&validDate(input.to)&&input.from<=input.to&&input.from.slice(0,7)===input.to.slice(0,7))return {month:input.from.slice(0,7),from:input.from,to:input.to};
+  return null;
+ }
+ function filterLabel(saved){return (saved.scope==='all'?'todos os meses':'mês selecionado')+(saved.quick==='custom'?(rangeAnchor(saved)?' · intervalo relativo ao mês':' · intervalo fixo'):'')}
+ function moveRange(anchor,month){
+  const [ay,am]=anchor.month.split('-').map(Number),[y,m]=month.split('-').map(Number);
+  const move=date=>{if(!date)return '';const [dy,dm,day]=date.split('-').map(Number),d=new Date(y,m-1+(dy-ay)*12+dm-am,1,12),target=String(d.getFullYear()).padStart(4,'0')+'-'+String(d.getMonth()+1).padStart(2,'0'),last=monthDays(target);return target+'-'+String(day===monthDays(date.slice(0,7))?last:Math.min(day,last)).padStart(2,'0')};
+  return {from:move(anchor.from),to:move(anchor.to)};
+ }
+ function captureFilter(name,input){
+  const f={name:String(name||'').trim(),scope:input.period==='all'?'all':'month',days:[...new Set((input.days||[]).map(Number).filter(d=>Number.isInteger(d)&&d>=1&&d<=31))].sort((a,b)=>a-b)};
+  for(const key of ['search','category','bank','receipt','status','quick','from','to','customDay'])f[key]=String(input[key]||'');
+  if(f.quick==='custom'){
+   f.rangeAnchor=input.rangeAnchor?rangeAnchor(input):null;
+   if(!f.rangeAnchor&&input.rangeMode!=='fixed'&&f.scope==='month'&&validMonth(input.period)&&[f.from,f.to].every(d=>!d||validDate(d))&&(f.from||f.to)&&(!f.from||!f.to||f.from<=f.to))f.rangeAnchor={month:input.period,from:f.from,to:f.to};
+   f.rangeMode=f.rangeAnchor?'relative':'fixed';if(!f.rangeAnchor)delete f.rangeAnchor;
+  }
+  return f;
+ }
+ function restoreFilter(saved,month){
+  const f={...captureFilter(saved.name,{...saved,period:'all'}),scope:saved.scope==='all'?'all':'month',period:saved.scope==='all'?'all':month},anchor=rangeAnchor(saved);
+  if(anchor&&validMonth(month)){Object.assign(f,moveRange(anchor,month));f.rangeAnchor=anchor;f.rangeMode='relative'}
+  else if(f.quick==='custom'){delete f.rangeAnchor;f.rangeMode='fixed'}
+  return f;
+ }
+ function normalizedName(title){return String(title||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s*\(\d+\/\d+\)\s*$/,'').trim().replace(/\s+/g,' ').toLocaleLowerCase('pt-BR')}
+ function possibleDuplicates(existing,drafts){
+  const keys=new Set(drafts.filter(t=>t.type==='expense').map(t=>JSON.stringify([normalizedName(t.title),Math.round(Number(t.value)*100),t.date])));
+  return existing.filter(t=>t.type==='expense'&&keys.has(JSON.stringify([normalizedName(t.title),Math.round(Number(t.value)*100),t.date])));
+ }
+ function nextRegisteredMonths(rows,baseMonth,remaining){
+  const [year,month]=baseMonth.split('-').map(Number),result=[];
+  for(let offset=1;offset<=3;offset++){
+   const d=new Date(year,month-1+offset,1,12),key=String(d.getFullYear()).padStart(4,'0')+'-'+String(d.getMonth()+1).padStart(2,'0');
+   const items=rows.filter(t=>t.type==='expense'&&!t.paid&&String(t.date||'').slice(0,7)===key);
+   result.push({month:key,count:items.length,cents:items.reduce((sum,t)=>sum+Math.round(remaining(t)*100),0)});
+  }
+  return result;
+ }
+ return {captureFilter,restoreFilter,filterLabel,normalizedName,possibleDuplicates,nextRegisteredMonths};
+})();
+if(typeof module!=='undefined'&&module.exports)module.exports=PaymentExperience;
+// PAYMENT_EXPERIENCE_END
+// LOCAL_RECOVERY_START
+/* Local device versions only: clearing browser data or losing this device loses them.
+ * No network, Firebase, localStorage or application-state writes occur here.
+ *
+ * Browser: localRecovery.createLocalRecovery(options). CommonJS also exports
+ * createMemoryAdapter() for tests; it is NEVER an automatic persistence fallback.
+ * Options (all optional): indexedDB (defaults to browser API), dbName (default
+ * 'nossa-familia-local-recovery-v1'), now (epoch-ms clock, default Date.now),
+ * maxSnapshots (6, minimum 2), maxBytes (30 MiB), maxSnapshotBytes (8 MiB),
+ * timeoutMs (5000). Use a stable, distinct dbName per application user/profile.
+ * Test-only adapter contract: read(signal) -> records; transact(update, signal)
+ * atomically runs synchronous update(records) -> { records, result } and returns
+ * result ONLY after commit. Custom async adapters MUST honor signal cancellation.
+ *
+ * All operations return Promises. capture(data, reason='manual', {force=false}={})
+ * resolves {id,createdAt,reason,bytes,schemaVersion,valid,status}, with status
+ * 'captured' or 'duplicate' (the existing id/metadata on deduplication).
+ * list() resolves [{id,createdAt,reason,bytes,schemaVersion,valid}], newest first,
+ * metadata only. load(id:string) resolves ONLY a fresh complete data copy.
+ * clear() resolves undefined; explicitly deletes ONLY this recovery DB's versions.
+ * Failures REJECT Error with .code and .message. Always catch controller calls.
+ * No volatile fallback or success before the storage transaction completes.
+ * Codes: invalid-options, invalid-data, too-large, budget, unavailable, blocked,
+ * timeout, quota, storage, corrupt, not-found. Messages are internal English;
+ * integrations should map codes to user-friendly Portuguese notices.
+ *
+ * Capture freezes the complete JSON payload at invocation, including data-URL
+ * receipts and payment history. Undefined, NaN/Infinity, functions, Dates, Blobs,
+ * accessors, sparse arrays and cycles are rejected rather than silently dropped.
+ * Load validates transactions array, optional closedMonths plain object, JSON
+ * shape and envelope; it does not validate business amounts or authenticate data.
+ * Dedup uses exact serialized JSON (key-order differences create a new version).
+ * Retention is atomic with insertion; it protects the newest valid predecessor
+ * and refuses the new capture if both cannot fit. Failed captures never prune.
+ * bytes measures UTF-8 JSON including envelope, NOT IndexedDB physical overhead.
+ * Timers bound asynchronous waits, not synchronous JS serialization/validation.
+ * Browser eviction, private-mode restrictions and hardware loss remain possible.
+ *
+ * Integration: load this script before application hooks. After reading the
+ * authorized cloud load finishes for the authenticated user's namespace, await
+ * capture(savedData,'initial') with the complete saved app state. Before
+ * edits/deletion/import/reset/restore, await capture(currentData,'before-edit')
+ * (force:true for explicit pre-restore). Catch rejections; on failure warn and
+ * never claim protection exists. Restore requires confirmation, a successful
+ * pre-restore capture and parent-controlled app persistence/rollback. load()
+ * does NOT restore or mutate anything. Do not capture the stripped sync payload.
+ * Show: 'Versões somente neste navegador/aparelho. Apagar os dados do navegador
+ * ou perder o aparelho também apaga estas versões. Não é backup externo.'
+ */
+(function (root, factory) {
+  'use strict';
+  const api = factory();
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.localRecovery = { createLocalRecovery: api.createLocalRecovery };
+})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  'use strict';
+  const failure = (code, message) => ({ ok: false, error: { code, message } });
+  function validate(data) {
+    const plain = value => value !== null && typeof value === 'object' &&
+      (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
+    if (!plain(data) || !Array.isArray(data.transactions) ||
+        ('closedMonths' in data && !plain(data.closedMonths))) throw new Error('Expected transactions array and optional closedMonths object.');
+    const seen = new Set();
+    function visit(value) {
+      if (value === null || typeof value === 'string' || typeof value === 'boolean') return;
+      if (typeof value === 'number' && Number.isFinite(value)) return;
+      if (typeof value !== 'object' || (!plain(value) && !Array.isArray(value)) || seen.has(value)) throw new Error('Payload must contain only finite, acyclic JSON data.');
+      seen.add(value);
+      if (Array.isArray(value)) {
+        if (Reflect.ownKeys(value).length !== value.length + 1) throw new Error('Arrays must have no extra properties or holes.');
+        for (let i = 0; i < value.length; i++) {
+          const descriptor = Object.getOwnPropertyDescriptor(value, String(i));
+          if (!descriptor || !('value' in descriptor)) throw new Error('Arrays must contain only plain JSON items.');
+          visit(descriptor.value);
+        }
+      } else {
+        for (const key of Reflect.ownKeys(value)) {
+          const descriptor = Object.getOwnPropertyDescriptor(value, key);
+          if (typeof key !== 'string' || !descriptor.enumerable || !('value' in descriptor)) throw new Error('Payload must contain plain JSON properties.');
+          visit(descriptor.value);
+        }
+      }
+      seen.delete(value);
+    }
+    visit(data);
+  }
+  function createMemoryAdapter() {
+    let records = [];
+    return {
+      async read() { return structuredClone(records); },
+      async transact(update) {
+        const change = update(structuredClone(records));
+        records = structuredClone(change.records);
+        return change.result;
+      }
+    };
+  }
+  const storageError = (code, message) => Object.assign(new Error(message), { code });
+  const errorCode = error => error && error.code && typeof error.code === 'string' ? error.code :
+    error && error.name === 'QuotaExceededError' ? 'quota' :
+    error && ['SecurityError', 'NotSupportedError', 'InvalidStateError'].includes(error.name) ? 'unavailable' : 'storage';
+  function createIndexedDBAdapter(factory, dbName) {
+    function run(update, signal) {
+      return new Promise((resolve, reject) => {
+        let db, tx, request, result, settled = false, cause;
+        const finish = (error, value) => {
+          if (settled) return;
+          settled = true;
+          signal.removeEventListener('abort', abort);
+          if (db) db.close();
+          if (error) reject(error); else resolve(value);
+        };
+        const abort = () => {
+          try { if (tx) tx.abort(); } catch (_) { /* Already committed/aborted. */ }
+          finish(storageError('timeout', 'Local version operation timed out.'));
+        };
+        signal.addEventListener('abort', abort, { once: true });
+        if (signal.aborted) { abort(); return; }
+        try {
+          if (!factory || typeof factory.open !== 'function') throw storageError('unavailable', 'IndexedDB is unavailable.');
+          request = factory.open(dbName, 1);
+          request.onblocked = () => finish(storageError('blocked', 'Local versions are blocked by another open connection.'));
+          request.onerror = () => finish(request.error || storageError('storage', 'Could not open local versions.'));
+          request.onupgradeneeded = () => {
+            if (settled) { try { request.transaction.abort(); } catch (_) {} return; }
+            try { request.result.createObjectStore('snapshots', { keyPath: 'id' }); }
+            catch (error) { cause = error; request.transaction.abort(); }
+          };
+          request.onsuccess = () => {
+            db = request.result;
+            if (settled) { db.close(); return; }
+            db.onversionchange = () => db.close();
+            try {
+              tx = db.transaction('snapshots', update ? 'readwrite' : 'readonly');
+              tx.oncomplete = () => finish(null, result);
+              tx.onabort = () => finish(cause || tx.error || storageError('storage', 'Local version transaction was aborted.'));
+              tx.onerror = event => { cause = cause || event.target.error || tx.error; };
+              const store = tx.objectStore('snapshots');
+              const read = store.getAll();
+              read.onsuccess = () => {
+                if (settled) return;
+                try {
+                  const records = read.result.sort((a, b) => Number(a.id) - Number(b.id));
+                  if (!update) { result = records; return; }
+                  const change = update(records);
+                  result = change.result;
+                  if (change.records === records) return; // Failed/deduplicated capture: no writes.
+                  const kept = new Set(change.records.map(record => record.id));
+                  const old = new Map(records.map(record => [record.id, JSON.stringify(record)]));
+                  for (const record of change.records) if (old.get(record.id) !== JSON.stringify(record)) store.put(record);
+                  for (const record of records) if (!kept.has(record.id)) store.delete(record.id);
+                } catch (error) { cause = error; tx.abort(); }
+              };
+            } catch (error) { finish(error); }
+          };
+        } catch (error) { finish(error); }
+      });
+    }
+    return { read: signal => run(null, signal), transact: (update, signal) => run(update, signal) };
+  }
+  function createRecoveryEngine(options = {}) {
+    options = { ...options };
+    const positive = value => Number.isSafeInteger(value) && value > 0;
+    const invalidOptions = ['maxSnapshots', 'maxBytes', 'maxSnapshotBytes', 'timeoutMs'].some(key =>
+      options[key] !== undefined && !positive(options[key])) ||
+      (options.maxSnapshots !== undefined && options.maxSnapshots < 2) ||
+      (options.now !== undefined && typeof options.now !== 'function') ||
+      (options.dbName !== undefined && (typeof options.dbName !== 'string' || !options.dbName.trim()));
+    let adapter = options.adapter;
+    if (!adapter) {
+      try {
+        adapter = createIndexedDBAdapter(
+          Object.prototype.hasOwnProperty.call(options, 'indexedDB') ? options.indexedDB : globalThis.indexedDB,
+          options.dbName || 'nossa-familia-local-recovery-v1');
+      } catch (error) {
+        adapter = { read: () => Promise.reject(error), transact: () => Promise.reject(error) };
+      }
+    }
+    const now = options.now || Date.now;
+    let queue = Promise.resolve();
+    const enqueue = task => {
+      const next = queue.then(() => {
+        if (invalidOptions) return failure('invalid-options', 'Expected maxSnapshots >= 2, positive integer limits, a clock function and a nonempty database name.');
+        const controller = new AbortController();
+        let timer;
+        const timeout = new Promise((_, reject) => {
+          timer = setTimeout(() => { controller.abort(); reject(storageError('timeout', 'Local version operation timed out.')); }, options.timeoutMs ?? 5000);
+        });
+        return Promise.race([Promise.resolve().then(() => task(controller.signal)), timeout]).finally(() => clearTimeout(timer));
+      }).catch(error => failure(errorCode(error), error && error.message || 'Local version operation failed.'));
+      queue = next.then(() => undefined);
+      return next;
+    };
+    const decode = record => {
+      if (!record || record.schemaVersion !== 1 || typeof record.id !== 'string' || !/^[1-9]\d*$/.test(record.id) ||
+          !Number.isSafeInteger(Number(record.id)) || !Number.isFinite(record.createdAt) ||
+          typeof record.reason !== 'string' || typeof record.payload !== 'string' ||
+          record.bytes !== new TextEncoder().encode(JSON.stringify(record)).length) throw new Error('Invalid version envelope.');
+      const data = JSON.parse(record.payload);
+      validate(data);
+      return data;
+    };
+    const valid = record => { try { decode(record); return true; } catch (_) { return false; } };
+    const metadata = record => ({ id: record.id, createdAt: record.createdAt, reason: record.reason, bytes: record.bytes, schemaVersion: record.schemaVersion, valid: valid(record) });
+    return {
+      capture(data, reason = 'manual', captureOptions = {}) {
+        let payload, force;
+        try {
+          if (typeof reason !== 'string' || reason.length > 256 || !captureOptions || typeof captureOptions !== 'object' ||
+              (captureOptions.force !== undefined && typeof captureOptions.force !== 'boolean')) throw new Error('Expected a short reason and optional boolean force.');
+          force = captureOptions.force === true;
+          validate(data); payload = JSON.stringify(data);
+        }
+        catch (error) { return enqueue(() => failure('invalid-data', error.message)); }
+        return enqueue(signal => adapter.transact(records => {
+          const healthy = records.filter(valid).sort((a, b) => Number(a.id) - Number(b.id));
+          const previous = healthy[healthy.length - 1];
+          if (!force && previous && previous.payload === payload) return { records, result: { ok: true, status: 'duplicate', id: previous.id, snapshot: metadata(previous) } };
+          const id = String(records.reduce((max, record) => Number.isSafeInteger(Number(record.id)) ? Math.max(max, Number(record.id)) : max, 0) + 1);
+          const createdAt = now();
+          if (!Number.isFinite(createdAt) || !Number.isSafeInteger(Number(id))) return { records, result: failure('invalid-data', 'Invalid clock or version identifier.') };
+          const record = { schemaVersion: 1, id, createdAt, reason, payload, bytes: 0 };
+          let size;
+          do { size = record.bytes; record.bytes = new TextEncoder().encode(JSON.stringify(record)).length; } while (size !== record.bytes);
+          if (record.bytes > (options.maxSnapshotBytes ?? 8 * 1024 * 1024)) return { records, result: failure('too-large', 'Version exceeds individual byte limit.') };
+          const retained = [...healthy, record].slice(-(options.maxSnapshots || 6));
+          const total = () => retained.reduce((sum, item) => sum + item.bytes, 0);
+          const maxBytes = options.maxBytes ?? 30 * 1024 * 1024;
+          while (retained.length > 2 && total() > maxBytes) retained.shift();
+          if (total() > maxBytes) return { records, result: failure('budget', 'Cannot keep both this version and its preceding version within the byte budget.') };
+          return { records: retained, result: { ok: true, status: 'captured', id, snapshot: metadata(record) } };
+        }, signal));
+      },
+      list() { return enqueue(async signal => ({ ok: true, snapshots: (await adapter.read(signal)).map(metadata).reverse() })); },
+      load(id) { return enqueue(async signal => {
+        const record = (await adapter.read(signal)).find(item => item.id === id);
+        if (!record) return failure('not-found', 'Version not found.');
+        try { return { ok: true, data: decode(record), snapshot: metadata(record) }; }
+        catch (_) { return failure('corrupt', 'Version is invalid; application data was not changed.'); }
+      }); },
+      clear() { return enqueue(signal => adapter.transact(() => ({ records: [], result: { ok: true } }), signal)); }
+    };
+  }
+  function createLocalRecovery(options = {}) {
+    const engine = createRecoveryEngine(options);
+    const unwrap = result => {
+      if (!result.ok) throw storageError(result.error.code, result.error.message);
+      return result;
+    };
+    return {
+      capture(data, reason = 'manual', captureOptions = {}) {
+        // Call synchronously: the engine freezes payload before queueing it.
+        return engine.capture(data, reason, captureOptions).then(unwrap).then(result => ({ ...result.snapshot, status: result.status }));
+      },
+      list() { return engine.list().then(unwrap).then(result => result.snapshots); },
+      load(id) { return engine.load(id).then(unwrap).then(result => result.data); },
+      clear() { return engine.clear().then(unwrap).then(() => undefined); }
+    };
+  }
+  return { createLocalRecovery, createMemoryAdapter };
+});
+
+'use strict';
+// Validate known application containers without discarding legacy/unknown fields or dates.
+function validRecoveryAppData(value){
+ const object=x=>!!x&&typeof x==='object'&&!Array.isArray(x);
+ const number=x=>typeof x==='number'&&Number.isFinite(x);
+ const strings=x=>Array.isArray(x)&&x.every(v=>typeof v==='string');
+ const money=x=>{if(!number(x)&&(typeof x!=='string'||!/^\+?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(x.trim())))return false;const n=Number(x),c=Math.round(n*100);return Number.isSafeInteger(c)&&c>=0&&c/100===n};
+ const optional=(obj,key,check)=>obj[key]===undefined||check(obj[key]);
+ const identifier=x=>(typeof x==='number'||typeof x==='string'&&/^-?(?:0|[1-9]\d*)(?:\.\d+)?$/.test(x))&&Number.isFinite(Number(x))&&Math.abs(Number(x))<=Number.MAX_SAFE_INTEGER;
+ const record=x=>object(x)&&identifier(x.id)&&money(x.value)&&optional(x,'paidAmount',money)&&optional(x,'interestAmount',money)&&optional(x,'interest',money)&&
+  ['title','name','type','category','bank','receipt','paymentReceipt'].every(k=>optional(x,k,v=>typeof v==='string'))&&optional(x,'date',v=>v===null||typeof v==='string')&&
+  optional(x,'paymentHistory',rows=>rows===null||Array.isArray(rows)&&rows.every(p=>object(p)&&money(p.amount)&&optional(p,'interest',money)&&['date','bank','receipt'].every(k=>optional(p,k,v=>v===null||typeof v==='string'))));
+ return object(value)&&Array.isArray(value.transactions)&&value.transactions.every(record)&&
+  optional(value,'reserve',rows=>Array.isArray(rows)&&rows.every(r=>object(r)&&number(r.value)&&optional(r,'date',v=>v===null||typeof v==='string')))&&
+  optional(value,'budgets',x=>object(x)&&Object.values(x).every(number))&&optional(value,'closedMonths',object)&&optional(value,'customCategories',strings)&&
+  optional(value,'reserveGoal',number)&&optional(value,'savedPaymentFilters',x=>Array.isArray(x)&&x.every(object))&&
+  optional(value,'settings',x=>object(x)&&optional(x,'people',strings)&&optional(x,'favoriteCategories',strings)&&optional(x,'savingsGoal',number)&&optional(x,'theme',v=>typeof v==='string'));
+}
+function createRecoveryController(options={}){
+ let active=null,restoringSession=null;
+ const snapshot=value=>{if(!value||!Array.isArray(value.transactions))throw new TypeError('Invalid recovery data');return JSON.parse(JSON.stringify(value))};
+ const isCurrent=session=>active===session&&(!options.isSessionCurrent||options.isSessionCurrent()===true);
+ function notify(session,state,extra={}){if(!isCurrent(session))return;try{options.onStatus?.({scope:session.scope,state,...extra})}catch(_){}}
+ function failed(session,reason){notify(session,'error',{reason});return {ok:false,reason}}
+ async function restoreTarget(load,id,expectedCurrent){
+  const session=active;if(!session)return {ok:false,reason:'inactive'};
+  if(restoringSession===session)return {ok:false,reason:'busy'};restoringSession=session;
+  try{
+   const before=snapshot(options.getData()),fingerprint=JSON.stringify(before);
+   if(expectedCurrent!==undefined&&fingerprint!==expectedCurrent)return {ok:false,reason:'changed'};
+   let target;try{target=snapshot(await load(session))}catch(_){return failed(session,'invalid_version')}
+   if(!isCurrent(session))return {ok:false,reason:'inactive'};
+   if(options.canRestore&&options.canRestore(target)!==true)return {ok:false,reason:'invalid_version'};
+   const confirmed=options.confirmRestore&&await options.confirmRestore({id,current:before,target});
+   if(!isCurrent(session))return {ok:false,reason:'inactive'};
+   if(confirmed!==true)return {ok:false,reason:'cancelled'};
+   if(JSON.stringify(options.getData())!==fingerprint)return {ok:false,reason:'changed'};
+   const saved=await session.store.capture(before,'Antes de restaurar uma versão',{force:true});
+   if(!isCurrent(session))return {ok:false,reason:'inactive'};
+   if(!saved?.id)return failed(session,'backup_failed');
+   if(JSON.stringify(options.getData())!==fingerprint)return {ok:false,reason:'changed'};
+   try{if(options.commit(target)===false)return failed(session,'save_failed')}catch(_){return failed(session,'save_failed')}
+   // Durable commit is complete: presentation can never turn it into a failed backup.
+   notify(session,'ready',{snapshot:saved});
+   try{options.afterCommit?.();return {ok:true}}catch(_){return {ok:true,warning:'reopen_required'}}
+  }catch(_){return failed(session,'backup_failed')}finally{if(restoringSession===session)restoringSession=null}
+ }
+ return {
+  async activate(scope,initialData){
+   active=null;if(typeof scope!=='string'||!scope.trim())return {ok:false,reason:'inactive'};
+   let session;
+   try{const copy=snapshot(initialData);session={scope,store:options.storeForScope(scope)};active=session;notify(session,'saving');const saved=await session.store.capture(copy,'Estado local após carga autorizada');if(!isCurrent(session))return {ok:false,reason:'inactive'};if(!saved?.id)throw new Error('Missing snapshot confirmation');notify(session,'ready',{snapshot:saved});return {ok:true,snapshot:saved}}
+   catch(_){return session&&isCurrent(session)?failed(session,'backup_failed'):{ok:false,reason:'backup_failed'}}
+  },
+  deactivate(){active=null;try{options.onStatus?.({scope:null,state:'inactive'})}catch(_){}},
+  async list(){const session=active;if(!session)return {ok:false,reason:'inactive'};try{const versions=await session.store.list();if(!isCurrent(session))return {ok:false,reason:'inactive'};return {ok:true,versions}}catch(_){return failed(session,'backup_failed')}},
+  async capturePrevious(previousData,reason='Antes de alterar contas'){
+   const session=active;if(!session)return {ok:false,reason:'inactive'};
+   try{const copy=snapshot(previousData);notify(session,'saving');const saved=await session.store.capture(copy,reason);if(!isCurrent(session))return {ok:false,reason:'inactive'};if(!saved?.id)throw new Error('Missing snapshot confirmation');notify(session,'ready',{snapshot:saved});return {ok:true,snapshot:saved}}catch(_){return failed(session,'backup_failed')}
+  },
+  restore(id){return restoreTarget(session=>session.store.load(id),id)},
+  restorePayload(payload,expectedCurrent){let target;try{target=snapshot(payload)}catch(_){return Promise.resolve({ok:false,reason:'invalid_version'})}return restoreTarget(()=>target,'arquivo',expectedCurrent)}
+ };
+}
+if(typeof module!=='undefined'&&module.exports)module.exports={createRecoveryController,validRecoveryAppData};
+
+/* Application wiring for local-only, account-scoped recovery. */
+function appRecoveryState(){return appRecoveryState.value||(appRecoveryState.value={uid:'',epoch:0,controller:null,notice:'As cópias ficam disponíveis após carregar sua conta.'})}
+function recoverySessionMatches(uid,epoch){const state=appRecoveryState();return !!uid&&state.uid===uid&&state.epoch===epoch&&typeof firebaseUser!=='undefined'&&firebaseUser?.uid===uid}
+function renderRecoveryStatus(){
+ if(typeof document==='undefined'||typeof document.getElementById!=='function')return;
+ const target=document.getElementById('localRecoveryStatus');if(target)target.textContent=appRecoveryState().notice;
+}
+function deactivateAppRecovery(){
+ const state=appRecoveryState();state.epoch++;state.uid='';if(state.controller)state.controller.deactivate();state.controller=null;state.notice='Carregue sua conta para consultar as cópias deste aparelho.';
+ if(typeof document!=='undefined'&&typeof document.getElementById==='function'){document.getElementById('recoveryOverlay')?.classList.remove('show');const list=document.getElementById('recoveryVersionList');if(list)list.replaceChildren()}
+ renderRecoveryStatus();
+}
+async function activateAppRecovery(uid){
+ if(typeof firebaseUser==='undefined'||!uid||firebaseUser?.uid!==uid)return {ok:false,reason:'inactive'};
+ const state=appRecoveryState();if(state.controller)state.controller.deactivate();const epoch=++state.epoch;state.uid=uid;
+ state.controller=createRecoveryController({
+  storeForScope:scope=>localRecovery.createLocalRecovery({indexedDB:globalThis.indexedDB,dbName:DB+'_versions_'+encodeURIComponent(scope),maxSnapshots:6,maxBytes:30*1024*1024,maxSnapshotBytes:8*1024*1024}),
+  getData:()=>data,
+  isSessionCurrent:()=>recoverySessionMatches(uid,epoch),
+  canRestore:payload=>{try{return validRecoveryAppData(payload)&&!hasPaymentConflict(payload)}catch(_){return false}},
+  confirmRestore:info=>confirm(`Restaurar esta versão com ${info.target.transactions.length} registro(s)?\nEla substituirá os dados atuais desta conta. Antes, será guardada uma cópia do estado atual. Nada será restaurado se essa cópia falhar.`),
+  commit:payload=>{
+   const previous=data;data=JSON.parse(JSON.stringify(payload));
+   if(!data.closedMonths)data.closedMonths={};if(!data.reserve)data.reserve=[];if(!data.budgets)data.budgets={};if(!data.customCategories)data.customCategories=[];
+   if(!data.settings)data.settings={people:[],favoriteCategories:[],savingsGoal:0,theme:'light'};
+   data.transactions.forEach(t=>{if(t.date==null)t.date=''});
+   try{if(persist({durableOnly:true})===false){data=previous;return false}}catch(err){data=previous;throw err}
+   return true;
+  },
+  afterCommit:()=>{
+   if(typeof scheduleCloudSave==='function')scheduleCloudSave();
+   selectedPaymentIds.clear();if(typeof resetFilters==='function')resetFilters();refreshCategoryOptions();applySettings();renderAll();
+  },
+  onStatus:status=>{if(!recoverySessionMatches(uid,epoch))return;state.notice=status.state==='ready'?'Cópia guardada neste aparelho. Até 6 versões recentes.':status.state==='saving'?'Guardando uma cópia neste aparelho…':'Não foi possível guardar uma cópia automática. Exporte um backup para proteger seus dados.';renderRecoveryStatus()}
+ });
+ try{
+  const stored=localStorage.getItem(DB),initial=stored?JSON.parse(stored):JSON.parse(JSON.stringify(data));
+  const result=await state.controller.activate(uid,initial);
+  if(!recoverySessionMatches(uid,epoch))return {ok:false,reason:'inactive'};
+  if(!result.ok){state.notice='Cópias automáticas indisponíveis neste aparelho. Você ainda pode exportar um backup.';renderRecoveryStatus()}
+  return result;
+ }catch(_){if(recoverySessionMatches(uid,epoch)){state.notice='Cópias automáticas indisponíveis neste aparelho. Exporte um backup.';renderRecoveryStatus()}return {ok:false,reason:'backup_failed'}}
+}
+function queueRecoveryPrior(raw,reason='Antes de alterar contas'){
+ const state=appRecoveryState(),uid=state.uid,epoch=state.epoch;
+ if(!state.controller||!recoverySessionMatches(uid,epoch)||!raw)return Promise.resolve({ok:false,reason:'inactive'});
+ try{return state.controller.capturePrevious(JSON.parse(raw),reason).catch(()=>({ok:false,reason:'backup_failed'}))}
+ catch(_){if(recoverySessionMatches(uid,epoch)){state.notice='Não foi possível guardar uma cópia desta alteração. Exporte um backup.';renderRecoveryStatus()}return Promise.resolve({ok:false,reason:'backup_failed'})}
+}
+function closeRecoveryVersions(){document.getElementById('recoveryOverlay')?.classList.remove('show')}
+async function openRecoveryVersions(){
+ const state=appRecoveryState(),uid=state.uid,epoch=state.epoch,list=document.getElementById('recoveryVersionList');
+ document.getElementById('recoveryOverlay').classList.add('show');list.replaceChildren();
+ if(!state.controller||!recoverySessionMatches(uid,epoch)){list.textContent='Carregue sua conta para consultar as cópias autorizadas deste aparelho.';return}
+ list.textContent='Carregando cópias…';const result=await state.controller.list();
+ if(!recoverySessionMatches(uid,epoch))return;
+ list.replaceChildren();if(!result.ok){list.textContent='Não foi possível abrir as cópias. Seus dados atuais não foram alterados.';return}
+ if(!result.versions.length){list.textContent='Ainda não há cópias guardadas neste aparelho.';return}
+ for(const version of result.versions){
+  const row=document.createElement('div');row.className='recovery-version';const title=document.createElement('strong');title.textContent=new Date(version.createdAt).toLocaleString('pt-BR');
+  const note=document.createElement('div');note.className='note';note.textContent=version.valid?version.reason:'Esta cópia não pode ser restaurada.';
+  const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent='Restaurar esta versão';button.disabled=!version.valid;
+  button.onclick=async()=>{button.disabled=true;const restored=await restoreLocalVersion(version.id);if(!restored.ok&&recoverySessionMatches(uid,epoch))button.disabled=false};row.append(title,note,button);list.append(row);
+ }
+}
+function reportRecoveryRestore(result){
+ if(result.ok){
+   try{closeRecoveryVersions();if(result.warning==='reopen_required')alert('Os dados foram restaurados e salvos neste aparelho, mas a tela não pôde ser atualizada. Reabra o aplicativo para continuar.');else if(typeof announcePayment==='function')announcePayment('Versão restaurada e salva neste aparelho.')}
+   catch(_){result.warning='reopen_required';alert('Os dados foram restaurados e salvos neste aparelho. Reabra o aplicativo para atualizar a tela.')}
+   return result;
+ }
+ const messages={inactive:'Carregue sua conta antes de restaurar. Nenhum dado foi substituído.',changed:'As contas mudaram durante a conferência. Abra as cópias novamente e confira antes de restaurar.',invalid_version:'Esta cópia tem um formato incompatível ou pagamentos que precisam ser conferidos. Nada foi substituído.',backup_failed:'Não foi possível guardar a proteção necessária. Nada foi restaurado. Exporte um backup e tente novamente.',save_failed:'Não foi possível salvar a restauração. Seus dados atuais foram mantidos.'};
+ if(messages[result.reason])alert(messages[result.reason]);return result;
+}
+async function restoreLocalVersion(id){
+ const state=appRecoveryState(),uid=state.uid,epoch=state.epoch;
+ if(!state.controller||!recoverySessionMatches(uid,epoch))return {ok:false,reason:'inactive'};
+ const result=await state.controller.restore(id);if(!recoverySessionMatches(uid,epoch))return {ok:false,reason:'inactive'};
+ return reportRecoveryRestore(result);
+}
+
+// LOCAL_RECOVERY_END
 function relatedTransactions(t){
  return data.transactions.filter(x=>transactionGroup(x)===transactionGroup(t));
 }
@@ -1279,6 +1907,92 @@ function duplicateDraft(t){
 }
 function totalDue(t){return Math.round((Number(t.value||0)+Number(t.interestAmount||0))*100)/100}
 function remainingValue(t){return t.paid?0:Math.max(0,Math.round((totalDue(t)-Number(t.paidAmount||0))*100)/100)}
+function readPaymentInterest(){
+ const text=paymentInterest.value.trim();if(!text)return 0;
+ if(!/^(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?$/.test(text))return null;
+ const cents=Math.round(parseMoney(text)*100);
+ return Number.isSafeInteger(cents)&&cents>=0?cents/100:null;
+}
+function batchPaymentPlan(items,interest=0){
+ const interestCents=Math.round(Number(interest)*100);
+ if(!items.length||!Number.isSafeInteger(interestCents)||interestCents<0||new Set(items.map(t=>t.id)).size!==items.length)return null;
+ const balances=items.map(t=>Math.round(remainingValue(t)*100));
+ if(items.some(t=>t.type!=='expense'||t.paid)||balances.some(c=>!Number.isSafeInteger(c)||c<=0))return null;
+ const principalCents=balances.reduce((sum,c)=>sum+c,0),totalCents=principalCents+interestCents;
+ if(!Number.isSafeInteger(principalCents)||!Number.isSafeInteger(totalCents))return null;
+ // Integer largest-remainder allocation: the one group fee is never multiplied by the account count.
+ const denominator=BigInt(principalCents),fee=BigInt(interestCents);
+ const shares=balances.map((c,index)=>{const product=BigInt(c)*fee;return {index,cents:Number(product/denominator),remainder:product%denominator}});
+ const order=[...shares].sort((a,b)=>a.remainder===b.remainder?a.index-b.index:a.remainder>b.remainder?-1:1);
+ const remainder=interestCents-shares.reduce((sum,s)=>sum+s.cents,0);
+ for(let i=0;i<remainder;i++)order[i].cents++;
+ return {principalCents,interestCents,totalCents,payments:items.map((t,i)=>({id:t.id,principalCents:balances[i],interestCents:shares[i].cents,amountCents:balances[i]+shares[i].cents}))};
+}
+
+const paymentPeriodAggregation = (() => {
+  function validMonth(month) {
+    return typeof month === 'string' && /^(?!0000)\d{4}-(0[1-9]|1[0-2])$/.test(month);
+  }
+  function dateMonth(date) {
+    if (typeof date !== 'string' || !/^(?!0000)\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(date)) return null;
+    const year = Number(date.slice(0, 4)), month = Number(date.slice(5, 7)), day = Number(date.slice(8));
+    const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+    return day <= [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1] ? date.slice(0, 7) : null;
+  }
+  function cents(value) {
+    if (typeof value !== 'number' && typeof value !== 'string') return 0n;
+    if (typeof value === 'string' && !/^[+]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim())) return 0n;
+    const n = Number(value);
+    if (!Number.isFinite(n) || n <= 0) return 0n;
+    // Keep decimal strings exact; Number conversion is validation only.
+    // For numbers, use their decimal representation, not n*100 (1.005 drifts).
+    const text = typeof value === 'string' ? value.trim().replace(/^\+/, '') : String(n);
+    const [coefficient, exponent = '0'] = text.toLowerCase().split('e');
+    const [whole, fraction = ''] = coefficient.split('.');
+    const digits = BigInt(whole + fraction);
+    const shift = Number(exponent) + 2 - fraction.length;
+    const divisor = shift < 0 ? 10n ** BigInt(-shift) : 1n;
+    const result = shift >= 0 ? digits * 10n ** BigInt(shift) : (digits + divisor / 2n) / divisor;
+    return result <= BigInt(Number.MAX_SAFE_INTEGER) ? result : 0n;
+  }
+  function legacyPaid(t) {
+    // Equivalent to existing paidValue(t), including paid=true's totalDue fallback.
+    const totalDue = Math.round((Number(t.value || 0) + Number(t.interestAmount || 0)) * 100) / 100;
+    return t.paid ? Number(t.paidAmount || totalDue) : Math.max(0, Number(t.paidAmount || 0));
+  }
+  function sum(transactions, month, field, undated) {
+    if (!undated && !validMonth(month)) return 0;
+    let total = 0n;
+    for (const t of Array.isArray(transactions) ? transactions : []) {
+      if (!t || t.type !== 'expense') continue;
+      const history = Array.isArray(t.paymentHistory) && t.paymentHistory.length ? t.paymentHistory : null;
+      const entries = history || [{ date: t.paymentDate, amount: legacyPaid(t), interest: t.interestAmount }];
+      for (const entry of entries) {
+        // Interest is a paid outflow only when this entry also records a valid positive payment.
+        if (field === 'interest' && cents(entry?.amount) === 0n) continue;
+        const paidMonth = dateMonth(entry?.date);
+        if (undated ? paidMonth === null : paidMonth === month) total += cents(entry?.[field]);
+      }
+    }
+    if (total > BigInt(Number.MAX_SAFE_INTEGER)) throw new RangeError('Payment total exceeds safe integer cents');
+    return Number(total) / 100;
+  }
+  return { sum, dateMonth };
+})();
+
+function monthlyPaidTotal(transactions, month) {
+  return paymentPeriodAggregation.sum(transactions, month, 'amount', false);
+}
+function monthlyPaidInterest(transactions, month) {
+  return paymentPeriodAggregation.sum(transactions, month, 'interest', false);
+}
+function undatedPaidTotal(transactions) {
+  return paymentPeriodAggregation.sum(transactions, null, 'amount', true);
+}
+
+
+function validRecordedPaymentDate(value){return paymentPeriodAggregation.dateMonth(value)!==null}
+function localDateISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function hasPaymentConflict(source){
  return (source.transactions||[]).some(t=>{
    if(t.type&&t.type!=='expense')return false;
@@ -1292,19 +2006,39 @@ function hasPaymentConflict(source){
 }
 function latestReceipt(t){return [...(t.paymentHistory||[])].reverse().find(entry=>entry.receipt)?.receipt||t.paymentReceipt||t.receipt||''}
 function expenseTotalShown(list){return list.filter(t=>t.type==='expense').reduce((sum,t)=>sum+(t.paid?totalDue(t):remainingValue(t)),0)}
-function fmtDate(date){return new Date(date+'T12:00:00').toLocaleDateString('pt-BR')}
+function fmtDate(date){return validRecordedPaymentDate(date)?new Date(date+'T12:00:00').toLocaleDateString('pt-BR'):'Data não informada'}
 function paidValue(t){return t.paid?Number(t.paidAmount||totalDue(t)):Math.max(0,Number(t.paidAmount||0))}
 function recordPayment(t,amount,date,bank,receipt,interest=0){
  if(!t||t.type!=='expense'||t.paid||!ensureMonthOpen(t.date))return false;
- const cents=Math.round(Number(amount)*100),interestCents=Math.round(Number(interest)*100);
- const remaining=Math.round(remainingValue(t)*100)+interestCents;
- if(!Number.isFinite(cents)||!Number.isFinite(interestCents)||interestCents<0||cents<=0||cents>remaining){alert('Informe um valor válido, sem ultrapassar o saldo com juros.');return false}
- t.interestAmount=(Math.round(Number(t.interestAmount||0)*100)+interestCents)/100;
- t.paidAmount=Math.round((paidValue(t)*100+cents))/100;
+ const moneyCents=value=>{
+   if(typeof value!=='number'&&(typeof value!=='string'||!/^\+?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim())))return null;
+   const n=Number(value),c=Math.round(n*100);
+   return Number.isSafeInteger(c)&&c>=0&&c/100===n?c:null;
+ };
+ const cents=moneyCents(amount),interestCents=moneyCents(interest);
+ const previousAmount=moneyCents(t.paidAmount===undefined?0:t.paidAmount),previousInterest=moneyCents(t.interestAmount===undefined?0:t.interestAmount),principal=moneyCents(t.value);
+ const history=Array.isArray(t.paymentHistory)?[...t.paymentHistory]:[];
+ const migrating=!history.length&&previousAmount>0;
+ const invalidHistory=history.some(p=>!p||moneyCents(p.amount)===null||moneyCents(p.amount)<=0||moneyCents(p.interest===undefined?0:p.interest)===null||Number(p.interest||0)>Number(p.amount));
+ if(previousAmount===null||previousInterest===null||principal===null||principal<=0||previousInterest>previousAmount||
+   !Number.isSafeInteger(principal+previousInterest)||previousAmount>=principal+previousInterest||
+   (t.paymentHistory!=null&&!Array.isArray(t.paymentHistory))||invalidHistory||
+   (history.length&&(history.reduce((sum,p)=>sum+moneyCents(p.amount),0)!==previousAmount||history.reduce((sum,p)=>sum+moneyCents(p.interest===undefined?0:p.interest),0)!==previousInterest))||
+   (migrating&&[t.paymentBank,t.paymentReceipt].some(v=>v!=null&&typeof v!=='string'))){
+   alert('O pagamento anterior está inconsistente. Confira os valores e o histórico antes de complementar.');return false;
+ }
+ const remaining=principal+previousInterest-previousAmount+interestCents;
+ if(cents===null||interestCents===null||!Number.isSafeInteger(remaining)||!Number.isSafeInteger(principal+previousInterest+interestCents)||!Number.isSafeInteger(previousAmount+cents)||!Number.isSafeInteger(previousInterest+interestCents)||cents<=0||interestCents>cents||cents>remaining){alert('Informe um valor válido, sem ultrapassar o saldo com juros.');return false}
+ // Materialize the old paid outflow before history gains precedence in reports.
+ // A generic account attachment is not proof of this payment; move only paymentReceipt.
+ if(migrating)history.push({id:Date.now()+Math.random(),legacy:true,amount:previousAmount/100,interest:previousInterest/100,date:validRecordedPaymentDate(t.paymentDate)?t.paymentDate:'',bank:t.paymentBank||'',receipt:t.paymentReceipt||''});
+ history.push({id:Date.now()+Math.random(),amount:cents/100,interest:interestCents/100,date,bank,receipt:receipt||''});
+ t.interestAmount=(previousInterest+interestCents)/100;
+ t.paidAmount=(previousAmount+cents)/100;
  t.paid=Math.round(t.paidAmount*100)>=Math.round(totalDue(t)*100);
  t.paymentDate=date;t.paymentBank=bank;
- if(!Array.isArray(t.paymentHistory))t.paymentHistory=[];
- t.paymentHistory.push({id:Date.now()+Math.random(),amount:cents/100,interest:interestCents/100,date,bank,receipt:receipt||''});
+ t.paymentHistory=history;
+ if(migrating)delete t.paymentReceipt;
  return true;
 }
 function rollbackPayment(t){
@@ -1462,7 +2196,7 @@ function openTransactionActions(id){
  const t=data.transactions.find(x=>x.id===id);if(!t)return;
  const group=relatedTransactions(t),label=group.length>1?'parcela':'conta';
  txActionSummary.textContent=`${t.title} • ${money(t.value)} • vence ${new Date(t.date+'T12:00:00').toLocaleDateString('pt-BR')}`;
- txActionButtons.innerHTML=`${!t.paid?`<button class="primary" onclick="postponeInstallments(${id})">Adiar parcelas restantes</button><p class="note">Move esta ${label} e as próximas em um mês; a data final também avança.</p>`:''}
+ txActionButtons.innerHTML=`<button class="secondary" onclick="closeTransactionActions();editTransaction(${id})">Editar conta</button>${!t.paid?`<button class="primary" onclick="postponeInstallments(${id})">Adiar parcelas restantes</button><p class="note">Move esta ${label} e as próximas em um mês; a data final também avança.</p>`:''}
  <button class="secondary" onclick="duplicateTransaction(${id})">Duplicar para o próximo mês</button>
  ${paidValue(t)>0?`<button class="secondary" onclick="closeTransactionActions();openDetails(${id})">Ver pagamentos e detalhes</button>`:''}
  <button class="secondary" onclick="deleteOneTransaction(${id})">Apagar só esta ${label}</button>
@@ -1536,21 +2270,21 @@ function openBudget(){bValue.value='';budgetOverlay.classList.add('show')}
 function closeBudget(){budgetOverlay.classList.remove('show')}
 function saveBudget(){const v=parseMoney(bValue.value);if(!v){alert('Informe o limite.');return}data.budgets[bCategory.value]=v;persist();closeBudget();renderAll()}
 function renderReports(){
- const tx=filteredMonth(),inc=tx.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0),exp=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+totalDue(b),0),paid=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+paidValue(b),0),pending=tx.filter(t=>!t.paid&&t.type==='expense').reduce((a,b)=>a+remainingValue(b),0);
+ const month=currentMonth(),tx=filteredMonth(),inc=tx.filter(t=>t.type==='income').reduce((a,b)=>a+b.value,0),exp=tx.filter(t=>t.type==='expense').reduce((a,b)=>a+totalDue(b),0),paid=monthlyPaidTotal(data.transactions,month),pending=tx.filter(t=>t.type==='expense'&&!t.paid).reduce((a,b)=>a+remainingValue(b),0);
  rIncome.textContent=money(inc);rExpense.textContent=money(exp);rPaid.textContent=money(paid);rPending.textContent=money(pending);rBalance.textContent=money(inc-exp);
- const calendar=cashflowCalendar(currentMonth());
- cashflowCalendarList.innerHTML=calendar.length?calendar.map(day=>`<div style="padding:13px 0;border-bottom:1px solid var(--line)"><strong>${fmtDate(day.date)}</strong><div class="note">${day.items.map(t=>`${t.type==='income'?'Entrada':'Vencimento'}: ${escapeHTML(t.title)} (${money(t.type==='expense'?totalDue(t):t.value)})`).join('<br>')}</div><div class="kpi-line"><span>Entra ${money(day.income)} · Vence ${money(day.expense)}</span><strong style="color:${day.running<0?'var(--danger)':'var(--green)'}">Acumulado ${money(day.running)}</strong></div></div>`).join(''):'<div class="empty">Nenhuma entrada ou conta cadastrada neste mês.</div>';
- const cats={};tx.filter(t=>t.type==='expense').forEach(t=>cats[t.category]=(cats[t.category]||0)+totalDue(t));const max=Math.max(1,...Object.values(cats));
- categoryChart.innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div class="chart-row"><strong>${c}</strong><div class="bar"><span style="width:${v/max*100}%"></span></div><span>${money(v)}</span></div>`).join('')||'<div class="empty">Sem despesas no mês.</div>';
- const months=[];for(let i=5;i>=0;i--){let d=new Date();d.setMonth(d.getMonth()-i);let m=d.toISOString().slice(0,7),v=data.transactions.filter(t=>ym(t.date)===m&&t.type==='expense').reduce((a,b)=>a+totalDue(b),0);months.push([d.toLocaleDateString('pt-BR',{month:'short'}),v])}const mm=Math.max(1,...months.map(x=>x[1]));
- monthCompare.innerHTML=months.map(([m,v])=>`<div class="chart-row"><strong>${m}</strong><div class="bar"><span style="width:${v/mm*100}%"></span></div><span>${money(v)}</span></div>`).join('');
- const people={};
- tx.filter(t=>t.type==='expense').forEach(t=>{const p=t.person||'Não informado';people[p]=(people[p]||0)+totalDue(t)});
- responsibleSummary.innerHTML=Object.entries(people).sort((a,b)=>b[1]-a[1]).map(([p,v])=>`<div class="responsible-row"><strong>${p}</strong><span>${money(v)}</span></div>`).join('')||'<div class="empty">Sem responsáveis informados.</div>';
+ if(typeof rPaidInterest!=='undefined')rPaidInterest.textContent=money(monthlyPaidInterest(data.transactions,month));
+ if(typeof paymentUndatedInfo!=='undefined'){const undated=undatedPaidTotal(data.transactions);paymentUndatedInfo.textContent=undated?`${money(undated)} de pagamentos sem data registrada continuam no histórico, mas não entram nos totais mensais.`:''}
+ const by={};data.transactions.filter(t=>t.type==='expense').forEach(t=>{const amount=monthlyPaidTotal([t],month);if(amount)by[t.category||'Outros']=(by[t.category||'Outros']||0)+amount});
+ categoryChart.innerHTML=Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`<div class="budget"><div class="budget-top"><span>${escapeHTML(c)}</span><strong>${money(v)}</strong></div><div class="progress"><span style="width:${paid?Math.min(100,v/paid*100):0}%"></span></div></div>`).join('')||'<div class="empty">Nenhum pagamento neste mês.</div>';
+ const monthTotals=[];const monthBase=new Date(month+'-01T12:00:00');for(let i=5;i>=0;i--){const d=new Date(monthBase.getFullYear(),monthBase.getMonth()-i,1);const m=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');monthTotals.push({m,v:monthlyPaidTotal(data.transactions,m)})}
+ const max=Math.max(...monthTotals.map(x=>x.v),1);monthCompare.innerHTML=monthTotals.map(({m,v})=>`<div class="chart-row"><strong>${m.slice(5)}/${m.slice(2,4)}</strong><div class="bar"><span style="width:${v/max*100}%"></span></div><span>${money(v)}</span></div>`).join('');
+ const people={};data.transactions.filter(t=>t.type==='expense').forEach(t=>{const amount=monthlyPaidTotal([t],month);if(amount)people[t.person||'Sem responsável']=(people[t.person||'Sem responsável']||0)+amount});
+ responsibleSummary.innerHTML=Object.entries(people).map(([person,value])=>`<div class="kpi-line"><span>${escapeHTML(person)}</span><strong>${money(value)}</strong></div>`).join('')||'<div class="empty">Nenhum pagamento neste mês.</div>';
+ const calendar=cashflowCalendar(month).filter(day=>day.items.some(t=>t.type==='expense'));
+ cashflowCalendarList.innerHTML=calendar.map(day=>`<div class="calendar-day"><div class="calendar-top"><strong>${fmtDate(day.date)}</strong><span class="running">Contas no dia: ${money(day.expense)}</span></div><div class="calendar-totals"><span>Em aberto: ${money(day.items.filter(t=>t.type==='expense'&&!t.paid).reduce((a,t)=>a+remainingValue(t),0))}</span></div><div class="note">${day.items.filter(t=>t.type==='expense').map(t=>'Vencimento: '+escapeHTML(t.title)).join(' • ')}</div></div>`).join('')||'<div class="empty">Nenhuma conta vence neste mês.</div>';
 }
-
-
 function openPayment(id){
+ confirmPayment.completed=false;confirmPayment.busy=false;
  const t=data.transactions.find(x=>x.id===id);
  if(t&&!ensureMonthOpen(t.date))return;
  if(!t)return;
@@ -1558,17 +2292,19 @@ function openPayment(id){
  postponePaymentBtn.style.display='block';
  paymentAmountWrap.style.display='block';
  paymentInterestWrap.style.display='block';paymentInterest.value='';
+ paymentInterestLabel.textContent='Juros ou multa cobrados agora (opcional)';
+ paymentInterestNote.textContent='Preencha somente se houver cobrança. O app soma esse valor ao pagamento acima; não calcula juros automaticamente.';
  paymentAmount.value=String(remainingValue(t)).replace('.',',');
  undoLastPaymentBtn.style.display=t.paymentHistory?.length?'block':'none';
  paymentHistoryInfo.textContent=paidValue(t)>0?`Já pago: ${money(paidValue(t))}. Falta: ${money(remainingValue(t))}.`:'Valor total pendente.';
  paymentTxId.value=id;
- paymentDate.value=new Date().toISOString().slice(0,10);
+ paymentDate.value=localDateISO();
  paymentBank.value=t.paymentBank||'';
  currentPaymentReceipt='';
  paymentAccountSummary.innerHTML=`<div style="font-weight:900">${escapeHTML(t.title)}</div><div class="item-meta">${escapeHTML(t.category)} • Vencimento ${fmtDate(t.date)}</div><div class="value sm" style="margin-top:8px">Restam ${money(remainingValue(t))} de ${money(totalDue(t))}</div>`;
  updatePaymentReceiptPreview();
  const payButton=paymentOverlay.querySelector('.primary');
- if(payButton)payButton.textContent='Registrar pagamento';
+ if(payButton){payButton.textContent='Registrar pagamento';payButton.disabled=false;}
  paymentOverlay.classList.add('show');
 }
 function closePayment(){
@@ -1622,28 +2358,31 @@ function openPaymentReceipt(){
  }
 }
 function confirmPayment(){
- const paymentDateValue=paymentDate.value||new Date().toISOString().slice(0,10);
+ if(confirmPayment.busy||(confirmPayment.completed&&confirmPayment.completedMode===paymentMode))return;
+ confirmPayment.busy=true;
+ try{
+ const paymentDateValue=paymentDate.value||localDateISO();
  const bank=paymentBank.value.trim();
 
  if(paymentMode==='batch'){
    const items=getSelectedPaymentItems();
-   if(!items.length){
-     alert('Nenhuma conta selecionada.');
-     closePayment();
-     return;
-   }
+   if(!items.length){alert('Nenhuma conta selecionada.');closePayment();return}
    if(items.some(t=>!ensureMonthOpen(t.date)))return;
-   const total=items.reduce((sum,t)=>sum+remainingValue(t),0);
-   const message=`Confirmar o pagamento de ${items.length} ${items.length===1?'conta':'contas'} no total de ${money(total)}?`;
+   const interest=readPaymentInterest(),plan=interest===null?null:batchPaymentPlan(items,interest);
+   if(!plan){alert('Confira os valores. Informe os juros em reais, com vírgula para os centavos.');return}
+   const message=`Confirmar o pagamento de ${items.length} ${items.length===1?'conta':'contas'}?\nContas: ${money(plan.principalCents/100)}\nJuros/multa do grupo: ${money(plan.interestCents/100)}\nTotal a registrar: ${money(plan.totalCents/100)}`;
    if(!confirm(message))return;
-
-   items.forEach(t=>recordPayment(t,remainingValue(t),paymentDateValue,bank,currentPaymentReceipt));
-
-   selectedPaymentIds.clear();
-   persist();
-   closePayment();
-   renderAll();
-   return;
+   // Stage all records before changing data: a rejected item cannot leave half a batch paid.
+   const updated=items.map(t=>JSON.parse(JSON.stringify(t)));
+   for(let i=0;i<updated.length;i++){
+     const payment=plan.payments[i];
+     if(!recordPayment(updated[i],payment.amountCents/100,paymentDateValue,bank,currentPaymentReceipt,payment.interestCents/100))return;
+   }
+   const previous=data.transactions,byId=new Map(updated.map(t=>[t.id,t]));
+   data.transactions=data.transactions.map(t=>byId.get(t.id)||t);
+   if(persist()===false){data.transactions=previous;if(typeof announcePayment==='function')announcePayment('Não foi possível salvar o pagamento. Sua seleção foi mantida.');return}
+   confirmPayment.completed=true;confirmPayment.completedMode=paymentMode;if(typeof announcePayment==='function')announcePayment('Pagamentos salvos neste aparelho.');
+   selectedPaymentIds.clear();closePayment();renderAll();return;
  }
 
  const id=Number(paymentTxId.value);
@@ -1655,11 +2394,16 @@ function confirmPayment(){
  if(!Number.isFinite(amount)||!Number.isFinite(interest)||interest<0||amount<=0||Math.round(amount*100)>Math.round(rest*100)){alert('Informe valores válidos; o valor da parcela não pode ultrapassar o saldo pendente.');return}
  const paidNow=Math.round((amount+interest)*100)/100;
  if((interest>0||amount<rest)&&!confirm(`Registrar pagamento de ${money(paidNow)}${interest>0?` (inclui ${money(interest)} de juros/multa)`:''}?${amount<rest?` Permanecerão ${money(Math.round((rest-amount)*100)/100)} pendentes nesta conta.`:''}`))return;
- if(!recordPayment(t,paidNow,paymentDateValue,bank,currentPaymentReceipt,interest))return;
- if(t.paid)selectedPaymentIds.delete(id);
- persist();
+ const previous=data.transactions,updated=JSON.parse(JSON.stringify(t));
+ if(!recordPayment(updated,paidNow,paymentDateValue,bank,currentPaymentReceipt,interest))return;
+ data.transactions=data.transactions.map(row=>row.id===id?updated:row);
+ if(persist()===false){data.transactions=previous;if(typeof announcePayment==='function')announcePayment('Não foi possível salvar o pagamento. Seus campos foram mantidos.');return}
+ Object.assign(t,updated);data.transactions=data.transactions.map(row=>row.id===id?t:row);
+ if(updated.paid)selectedPaymentIds.delete(id);
+ confirmPayment.completed=true;confirmPayment.completedMode=paymentMode;if(typeof announcePayment==='function')announcePayment('Pagamento salvo neste aparelho.');
  closePayment();
  renderAll();
+ }finally{confirmPayment.busy=false}
 }
 
 function handleReceipt(event){
@@ -1787,24 +2531,22 @@ function exportBackup(){
  a.href=url;a.download='backup-nossa-familia.json';a.click();URL.revokeObjectURL(url);
 }
 function restoreBackup(event){
- const file=event.target.files&&event.target.files[0];if(!file)return;
- const reader=new FileReader();
- reader.onload=e=>{
-   try{
-     const payload=JSON.parse(e.target.result);
-     const restored=payload.data||payload;
-     if(!restored.transactions||!restored.reserve)throw new Error();
-     if(confirm('Restaurar este backup substituirá os dados atuais. Continuar?')){
-       data=restored;if(!data.closedMonths)data.closedMonths={};
-if(!data.customCategories)data.customCategories=[];
-if(!data.settings)data.settings={people:[],favoriteCategories:[],savingsGoal:0,theme:'light'};
-       localStorage.setItem(DB,JSON.stringify(data));
-       if(payload.selectedMonth)localStorage.setItem(MONTH_KEY,payload.selectedMonth);
-       location.reload();
-     }
-   }catch(err){alert('Arquivo de backup inválido.')}
- };
- reader.readAsText(file);event.target.value='';
+ const file=event.target.files&&event.target.files[0];if(!file)return Promise.resolve({ok:false,reason:'cancelled'});
+ event.target.value='';
+ const state=appRecoveryState(),uid=state.uid,epoch=state.epoch,controller=state.controller,before=JSON.stringify(data);
+ if(!controller||!recoverySessionMatches(uid,epoch))return Promise.resolve(reportRecoveryRestore({ok:false,reason:'inactive'}));
+ return new Promise(resolve=>{
+   const reader=new FileReader();
+   reader.onerror=()=>resolve(reportRecoveryRestore({ok:false,reason:'invalid_version'}));
+   reader.onload=async e=>{
+     if(!recoverySessionMatches(uid,epoch)||appRecoveryState().controller!==controller){resolve({ok:false,reason:'inactive'});return}
+     let payload;try{const parsed=JSON.parse(e.target.result);payload=parsed.data||parsed}catch(_){resolve(reportRecoveryRestore({ok:false,reason:'invalid_version'}));return}
+     const result=await controller.restorePayload(payload,before);
+     if(!recoverySessionMatches(uid,epoch)){resolve({ok:false,reason:'inactive'});return}
+     resolve(reportRecoveryRestore(result));
+   };
+   reader.readAsText(file);
+ });
 }
 function storageBytes(){
  let total=0;
@@ -1860,10 +2602,10 @@ function applySettings(){
  settingsCategories.value=(s.favoriteCategories||[]).join(', ');
  settingsSavingsGoal.value=s.savingsGoal?String(s.savingsGoal).replace('.',','):'';
  settingsTheme.value=s.theme||'light';
- settingsPreview.innerHTML=[...(s.people||[]),...(s.favoriteCategories||[])].map(x=>`<span class="chip">${x}</span>`).join('');
+ settingsPreview.innerHTML=[...(s.people||[]),...(s.favoriteCategories||[])].map(x=>`<span class="chip">${escapeHTML(x)}</span>`).join('');
  if(s.favoriteCategories&&s.favoriteCategories.length){
    const opts=getCategories();
-   tCategory.innerHTML=[...s.favoriteCategories.filter(c=>opts.includes(c)),...opts.filter(c=>!s.favoriteCategories.includes(c))].map(c=>`<option>${c}</option>`).join('');
+   tCategory.innerHTML=[...s.favoriteCategories.filter(c=>opts.includes(c)),...opts.filter(c=>!s.favoriteCategories.includes(c))].map(c=>`<option>${escapeHTML(c)}</option>`).join('');
  }
 }
 
@@ -1880,7 +2622,7 @@ init();
 <input type="hidden" id="paymentTxId">
 <div id="paymentAccountSummary" class="card" style="box-shadow:none;background:#f7f3ef"></div>
 <div id="paymentAmountWrap" class="field"><label>Valor que está pagando agora</label><input id="paymentAmount" inputmode="decimal" placeholder="0,00"><div class="note">Pode pagar uma parte. O restante continua pendente.</div></div>
-<div id="paymentInterestWrap" class="field"><label>Juros ou multa cobrados agora (opcional)</label><input id="paymentInterest" inputmode="decimal" placeholder="0,00"><div class="note">Preencha somente se houver cobrança. O app soma esse valor ao pagamento acima; não calcula juros automaticamente.</div></div>
+<div id="paymentInterestWrap" class="field"><label id="paymentInterestLabel" for="paymentInterest">Juros ou multa cobrados agora (opcional)</label><input id="paymentInterest" inputmode="decimal" placeholder="0,00" oninput="updateBatchPaymentTotal()"><div id="paymentInterestNote" class="note">Preencha somente se houver cobrança. O app soma esse valor ao pagamento acima; não calcula juros automaticamente.</div></div>
 <div id="paymentHistoryInfo" class="note"></div>
 <div class="field"><label>Data do pagamento</label><input id="paymentDate" type="date"></div>
 <div class="field"><label>Banco de pagamento (opcional)</label><input id="paymentBank" placeholder="Ex.: Nubank, Itaú, Caixa"></div><div class="note" style="margin-top:8px">No pagamento em grupo, a mesma data, banco e comprovante serão aplicados a todas as contas selecionadas.</div>
