@@ -377,6 +377,7 @@ body.dark .nav button:not(.active){color:var(--muted)}
 <details id="savedPaymentFiltersPanel" class="saved-payment-filters"><summary>Criar e usar filtros</summary><div id="savedFilterHelp" class="note">1. Escolha os meses, dias e outros critérios em Filtrar. 2. Dê um nome à seleção e salve aqui. O nome é apenas uma identificação; ele não altera as contas mostradas.</div><button type="button" class="text-btn" onclick="startPaymentFilter()">Configurar critérios do filtro</button><label for="savedFilterName">Nome do filtro</label><div class="two"><input id="savedFilterName" maxlength="80" placeholder="Ex.: Contas de dois meses" aria-describedby="savedFilterHelp savedFilterFeedback" oninput="this.removeAttribute('aria-invalid')"><button type="button" class="secondary" onclick="savePaymentFilter()">Salvar filtro</button></div><div id="savedFilterFeedback" class="note" role="status" aria-live="polite"></div><select id="savedFilterSelect" aria-label="Filtros favoritos"><option value="">Escolha um favorito</option></select><div class="two"><button type="button" class="text-btn" onclick="loadPaymentFilter()">Aplicar filtro salvo</button><button type="button" class="text-btn" onclick="removePaymentFilter()">Remover favorito</button></div><div class="note">Um mês acompanha o mês-base. Meses escolhidos juntos ficam guardados no filtro, com mês e ano.</div></details>
 <div id="accountFiltersPanel" class="proposal-day-panel" style="display:none">
 <div class="proposal-period-row"><label for="accountPeriod">Período</label><select id="accountPeriod" onchange="changeAccountPeriod()"></select></div>
+<button id="selectAccountMonthsButton" type="button" class="secondary" style="margin:8px 0;padding:10px 12px;width:100%;font-size:14px" aria-controls="accountMonthsPanel" aria-expanded="false" onclick="selectAccountMonths()">Selecionar dois meses</button>
 <div id="accountMonthsPanel" hidden><div class="note">Escolha os meses que deseja ver juntos. Não precisa incluir os meses entre eles.</div><div class="two" style="grid-template-columns:minmax(0,1fr) auto"><select id="additionalAccountMonth" aria-label="Mês para adicionar"></select><button type="button" class="secondary" style="margin:0" onclick="addAccountMonth()">Adicionar mês</button></div><div id="accountMonthChips" class="saved-filter-shortcuts" aria-label="Meses selecionados"></div><div id="accountMonthsNote" class="note" role="status"></div></div>
 <div class="proposal-days-heading"><strong>Dias de vencimento</strong><button class="text-btn" onclick="resetFilters();renderTransactions()">Limpar</button></div>
 <div id="dueDayChips" class="proposal-day-buttons">
@@ -1185,6 +1186,7 @@ function removePaymentFilter(){
 }
 
 function toggleAccountFilters(){const show=accountFiltersPanel.style.display==='none';accountFiltersPanel.style.display=show?'block':'none';accountFilterButton.setAttribute('aria-expanded',String(show))}
+function selectAccountMonths(){accountPeriod.value='multi';changeAccountPeriod()}
 function changeAccountPeriod(){
  selectedPaymentIds.clear();
  if(accountPeriod.value==='multi'){
@@ -1196,6 +1198,7 @@ function changeAccountPeriod(){
 function renderAccountMonths(){
  const panel=document.getElementById('accountMonthsPanel');if(!panel)return;
  panel.hidden=accountPeriod.value!=='multi';
+ const button=document.getElementById('selectAccountMonthsButton');if(button)button.setAttribute('aria-expanded',String(!panel.hidden));
  const months=PaymentExperience.normalizeMonths([...selectedAccountMonths]);
  accountMonthChips.innerHTML=months.map(m=>`<button type="button" onclick="removeAccountMonth('${m}')" aria-label="Remover ${PaymentExperience.monthLabel(m)}">${PaymentExperience.monthLabel(m)} ×</button>`).join('');
  accountMonthsNote.textContent=months.length?months.length+' mês(es) selecionado(s). Toque no mês para remover.':'Adicione ao menos um mês para mostrar as contas.';
