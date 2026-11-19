@@ -374,9 +374,10 @@ body.dark .nav button:not(.active){color:var(--muted)}
 <div class="proposal-tabs"><button id="accountPendingTab" onclick="setAccountTab('pending')">A pagar</button><button id="accountPaidTab" onclick="setAccountTab('paid')">Pagamentos</button></div>
 <div class="proposal-search-row"><input id="search" placeholder="Buscar pelo nome" oninput="renderTransactions()"><button id="accountFilterButton" class="proposal-filter" aria-expanded="false" onclick="toggleAccountFilters()">Filtrar</button></div>
 <div id="quickPaymentFilters" class="saved-filter-shortcuts"></div>
-<details class="saved-payment-filters"><summary>Filtros favoritos</summary><label for="savedFilterName">Nome do favorito</label><div class="two"><input id="savedFilterName" maxlength="80" placeholder="Nome do favorito"><button class="secondary" onclick="savePaymentFilter()">Salvar filtro atual</button></div><select id="savedFilterSelect" aria-label="Filtros favoritos"><option value="">Escolha um favorito</option></select><div class="two"><button class="text-btn" onclick="loadPaymentFilter()">Carregar favorito</button><button class="text-btn" onclick="removePaymentFilter()">Remover favorito</button></div><div class="note">Favoritos mensais seguem o mês selecionado. Para reunir meses, escolha Todos os meses.</div></details>
+<details id="savedPaymentFiltersPanel" class="saved-payment-filters"><summary>Criar e usar filtros</summary><div id="savedFilterHelp" class="note">1. Escolha os meses, dias e outros critérios em Filtrar. 2. Dê um nome à seleção e salve aqui. O nome é apenas uma identificação; ele não altera as contas mostradas.</div><button type="button" class="text-btn" onclick="startPaymentFilter()">Configurar critérios do filtro</button><label for="savedFilterName">Nome do filtro</label><div class="two"><input id="savedFilterName" maxlength="80" placeholder="Ex.: Contas de dois meses" aria-describedby="savedFilterHelp savedFilterFeedback" oninput="this.removeAttribute('aria-invalid')"><button type="button" class="secondary" onclick="savePaymentFilter()">Salvar filtro</button></div><div id="savedFilterFeedback" class="note" role="status" aria-live="polite"></div><select id="savedFilterSelect" aria-label="Filtros favoritos"><option value="">Escolha um favorito</option></select><div class="two"><button type="button" class="text-btn" onclick="loadPaymentFilter()">Aplicar filtro salvo</button><button type="button" class="text-btn" onclick="removePaymentFilter()">Remover favorito</button></div><div class="note">Um mês acompanha o mês-base. Meses escolhidos juntos ficam guardados no filtro, com mês e ano.</div></details>
 <div id="accountFiltersPanel" class="proposal-day-panel" style="display:none">
 <div class="proposal-period-row"><label for="accountPeriod">Período</label><select id="accountPeriod" onchange="changeAccountPeriod()"></select></div>
+<div id="accountMonthsPanel" hidden><div class="note">Escolha os meses que deseja ver juntos. Não precisa incluir os meses entre eles.</div><div class="two" style="grid-template-columns:minmax(0,1fr) auto"><select id="additionalAccountMonth" aria-label="Mês para adicionar"></select><button type="button" class="secondary" style="margin:0" onclick="addAccountMonth()">Adicionar mês</button></div><div id="accountMonthChips" class="saved-filter-shortcuts" aria-label="Meses selecionados"></div><div id="accountMonthsNote" class="note" role="status"></div></div>
 <div class="proposal-days-heading"><strong>Dias de vencimento</strong><button class="text-btn" onclick="resetFilters();renderTransactions()">Limpar</button></div>
 <div id="dueDayChips" class="proposal-day-buttons">
 <button type="button" class="due-chip" data-day="5" onclick="toggleDueDay(5)">05</button><button type="button" class="due-chip" data-day="10" onclick="toggleDueDay(10)">10</button><button type="button" class="due-chip" data-day="15" onclick="toggleDueDay(15)">15</button><button type="button" class="due-chip" data-day="20" onclick="toggleDueDay(20)">20</button><button type="button" class="due-chip" data-day="25" onclick="toggleDueDay(25)">25</button><button type="button" class="due-chip" data-day="30" onclick="toggleDueDay(30)">30</button>
@@ -392,7 +393,7 @@ body.dark .nav button:not(.active){color:var(--muted)}
 <select id="receiptFilter" onchange="renderTransactions()"><option value="all">Com ou sem comprovante</option><option value="with">Com comprovante</option><option value="without">Sem comprovante</option></select>
 <select id="dateQuickFilter" onchange="toggleCustomDate();renderTransactions()"><option value="all">Todas as datas</option><option value="today">Vencem hoje</option><option value="7">Próximos 7 dias</option><option value="15">Próximos 15 dias</option><option value="30">Próximos 30 dias</option><option value="custom">Período personalizado</option><option value="dayCustom" hidden>Dia personalizado legado</option></select>
 <div id="customDateWrap" class="full" style="display:none"><div class="two"><input id="dateFrom" type="date" onchange="renderTransactions()"><input id="dateTo" type="date" onchange="renderTransactions()"></div></div>
-</div></details></div>
+</div></details><button type="button" class="text-btn" onclick="saveCurrentFilterShortcut()">Salvar esta seleção como filtro</button></div>
 <div id="closedMonthBanner"></div>
 <div id="filterSummary" class="card summary-card"></div>
 <div class="section-head"><h2>Lançamentos</h2><div><button class="text-btn" onclick="openInstallmentOverview()">Minhas parcelas</button><button class="text-btn" onclick="resetFilters();renderTransactions()">Limpar filtros</button></div></div>
@@ -773,6 +774,7 @@ const icons={"Água": "<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fil
 let data=JSON.parse(localStorage.getItem(DB)||'null')||{transactions:[],reserve:[],budgets:{},reserveGoal:20000,closedMonths:{}};
 
 const selectedDueDays=new Set();
+const selectedAccountMonths=new Set();
 const selectedPaymentIds=new Set();
 let paymentMode='single';
 if(!data.closedMonths)data.closedMonths={};
@@ -1100,27 +1102,29 @@ function init(){
  const savedMonth=localStorage.getItem(MONTH_KEY)||localDateISO().slice(0,7);
  monthFilter.value=savedMonth;
  homeMonthFilter.value=savedMonth;
- accountPeriod.innerHTML='<option value="all">Todos os meses</option>'+options;accountPeriod.value=savedMonth;
+ accountPeriod.innerHTML='<option value="all">Todos os meses</option><option value="multi">Selecionar meses juntos</option>'+options;accountPeriod.value=savedMonth;
+ additionalAccountMonth.innerHTML=[...monthFilter.options].map(o=>`<option value="${o.value}">${new Date(o.value+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'short'}).replace('.','')}/${o.value.slice(0,4)}</option>`).join('');additionalAccountMonth.value=savedMonth;
  statusFilter.value='pending';typeFilter.value='expense';updateDueDayChips();
  generateRecurring();applySettings();checkPin();renderAll();
 }
 function showScreen(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.screen===id));renderAll()}
 function changeBaseMonth(value){
  const relative=loadPaymentFilter.relative;
- if(relative&&dateQuickFilter.value==='custom'&&accountPeriod.value!=='all'&&dateFrom.value===relative.from&&dateTo.value===relative.to){
+ if(relative&&dateQuickFilter.value==='custom'&&!['all','multi'].includes(accountPeriod.value)&&dateFrom.value===relative.from&&dateTo.value===relative.to){
   const moved=PaymentExperience.restoreFilter({scope:'month',quick:'custom',rangeAnchor:relative.anchor},value);
   dateFrom.value=moved.from;dateTo.value=moved.to;relative.from=moved.from;relative.to=moved.to;
  }else loadPaymentFilter.relative=null;
  localStorage.setItem(MONTH_KEY,value);
  if(monthFilter.value!==value)monthFilter.value=value;
  if(homeMonthFilter.value!==value)homeMonthFilter.value=value;
- if(typeof accountPeriod!=='undefined'&&accountPeriod.value!=='all')accountPeriod.value=value;
+ if(typeof accountPeriod!=='undefined'&&!['all','multi'].includes(accountPeriod.value))accountPeriod.value=value;
  renderAll();
 }
 function renderAll(){renderNextRegisteredMonths();renderSavedPaymentFilters();renderHome();renderTransactions();renderReports();renderCloseMonth();checkStorage()}
 function resetFilters(){
  search.value='';statusFilter.value='pending';typeFilter.value='expense';categoryFilter.value='all';bankFilter.value='';receiptFilter.value='all';dateQuickFilter.value='all';
  customDateWrap.style.display='none';customDayWrap.style.display='none';customDueDay.value='';dateFrom.value='';dateTo.value='';clearDueDays(false);
+ selectedAccountMonths.clear();loadPaymentFilter.relative=null;loadPaymentFilter.fixed=null;
  if(typeof accountPeriod!=='undefined')accountPeriod.value=currentMonth();
  selectedPaymentIds.clear();
 }
@@ -1138,18 +1142,30 @@ function registerPaymentFeedbackLifecycle(){
  if(registerPaymentFeedbackLifecycle.done)return;registerPaymentFeedbackLifecycle.done=true;
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)expirePaymentFeedback()});window.addEventListener('pageshow',()=>expirePaymentFeedback());window.addEventListener('focus',()=>expirePaymentFeedback());
 }
-function currentPaymentFilter(){return {period:accountPeriod.value,days:[...selectedDueDays],search:search.value,category:categoryFilter.value,bank:bankFilter.value,receipt:receiptFilter.value,status:statusFilter.value,quick:dateQuickFilter.value,from:dateFrom.value,to:dateTo.value,customDay:customDueDay.value,...(loadPaymentFilter.fixed&&dateQuickFilter.value==='custom'&&dateFrom.value===loadPaymentFilter.fixed.from&&dateTo.value===loadPaymentFilter.fixed.to?{rangeMode:'fixed'}:{}),...(loadPaymentFilter.relative&&dateQuickFilter.value==='custom'&&dateFrom.value===loadPaymentFilter.relative.from&&dateTo.value===loadPaymentFilter.relative.to?{rangeAnchor:loadPaymentFilter.relative.anchor}:{})}}
+function currentPaymentFilter(){return {period:accountPeriod.value,months:[...selectedAccountMonths],days:[...selectedDueDays],search:search.value,category:categoryFilter.value,bank:bankFilter.value,receipt:receiptFilter.value,status:statusFilter.value,quick:dateQuickFilter.value,from:dateFrom.value,to:dateTo.value,customDay:customDueDay.value,...(loadPaymentFilter.fixed&&dateQuickFilter.value==='custom'&&dateFrom.value===loadPaymentFilter.fixed.from&&dateTo.value===loadPaymentFilter.fixed.to?{rangeMode:'fixed'}:{}),...(loadPaymentFilter.relative&&dateQuickFilter.value==='custom'&&dateFrom.value===loadPaymentFilter.relative.from&&dateTo.value===loadPaymentFilter.relative.to?{rangeAnchor:loadPaymentFilter.relative.anchor}:{})}}
 function renderSavedPaymentFilters(){
  const select=document.getElementById('savedFilterSelect');if(!select)return;
  const quick=document.getElementById('quickPaymentFilters');if(quick)quick.innerHTML=(data.savedPaymentFilters||[]).slice(0,4).map((f,i)=>`<button type="button" onclick="loadPaymentFilter(${i})" title="${escapeHTML(f.name)}">${escapeHTML(f.name)} · ${PaymentExperience.filterLabel(f)}</button>`).join('');
  const selected=select.value;select.innerHTML='<option value="">Escolha um favorito</option>'+(data.savedPaymentFilters||[]).map((f,i)=>`<option value="${i}">${escapeHTML(f.name)} · ${PaymentExperience.filterLabel(f)}</option>`).join('');select.value=selected;
 }
 function savePaymentFilter(){
- const name=savedFilterName.value.trim();if(!name){announcePayment('Dê um nome ao filtro favorito.');return}
+ const name=savedFilterName.value.trim();if(!name){savedFilterName.setAttribute('aria-invalid','true');showSavedFilterFeedback('Dê um nome ao filtro para salvar.',true);savedFilterName.focus();return}
+ savedFilterName.removeAttribute('aria-invalid');
+ if(accountPeriod.value==='multi'&&!PaymentExperience.normalizeMonths([...selectedAccountMonths]).length){showSavedFilterFeedback('Adicione ao menos um mês em Configurar critérios.',true);return}
+ if(dateQuickFilter.value==='custom'&&dateFrom.value&&dateTo.value&&dateFrom.value>dateTo.value){showSavedFilterFeedback('A data inicial deve ser anterior ou igual à data final.',true);return}
  const previous=data.savedPaymentFilters||[];
  data.savedPaymentFilters=[...previous,PaymentExperience.captureFilter(name,currentPaymentFilter())];
- if(persist()===false){data.savedPaymentFilters=previous;announcePayment('Não foi possível salvar o favorito. Tente novamente.');return}
- renderSavedPaymentFilters();announcePayment('Favorito salvo neste aparelho.');
+ if(persist()===false){data.savedPaymentFilters=previous;showSavedFilterFeedback('Não foi possível salvar o filtro. Tente novamente.',true);return}
+ renderSavedPaymentFilters();savedFilterSelect.value=String(data.savedPaymentFilters.length-1);showSavedFilterFeedback('Filtro salvo: '+name+'. Ele já está selecionado na lista abaixo.');
+}
+function showSavedFilterFeedback(message,error=false){
+ const feedback=document.getElementById('savedFilterFeedback');if(feedback){feedback.textContent=message;feedback.style.color=error?'var(--danger)':'var(--text)'}announcePayment(message);
+}
+function startPaymentFilter(){
+ accountFiltersPanel.style.display='block';accountFilterButton.setAttribute('aria-expanded','true');accountFiltersPanel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function saveCurrentFilterShortcut(){
+ const panel=document.getElementById('savedPaymentFiltersPanel');if(panel){panel.open=true;panel.scrollIntoView({behavior:'smooth',block:'start'})}savedFilterName.focus({preventScroll:true});
 }
 function loadPaymentFilter(index=null){
  if(index!==null){if(!Number.isSafeInteger(index)||index<0)return;savedFilterSelect.value=String(index)}
@@ -1158,7 +1174,7 @@ function loadPaymentFilter(index=null){
  const f=PaymentExperience.restoreFilter(saved,currentMonth());
  for(const [id,key] of [['search','search'],['categoryFilter','category'],['bankFilter','bank'],['receiptFilter','receipt'],['statusFilter','status'],['dateQuickFilter','quick'],['dateFrom','from'],['dateTo','to'],['customDueDay','customDay']])document.getElementById(id).value=f[key];
  loadPaymentFilter.relative=null;loadPaymentFilter.fixed=f.rangeMode==='fixed'?{from:f.from,to:f.to}:null;
- accountPeriod.value=f.period;selectedDueDays.clear();f.days.forEach(d=>selectedDueDays.add(d));selectedPaymentIds.clear();updateDueDayChips();toggleCustomDate();if(f.rangeMode==='relative')loadPaymentFilter.relative={anchor:f.rangeAnchor,from:f.from,to:f.to};renderTransactions();announcePayment('Favorito carregado: '+f.name+'. '+(f.scope==='all'?'Todos os meses. ':f.quick==='custom'&&f.rangeMode==='fixed'?'Mês selecionado. ':'Segue o mês selecionado. ')+(f.quick==='custom'?'Intervalo '+(f.rangeMode==='relative'?'relativo ao mês':'fixo')+': '+((f.from?f.from.split('-').reverse().join('/'):'sem início'))+' até '+((f.to?f.to.split('-').reverse().join('/'):'sem fim'))+'.':''));
+ accountPeriod.value=f.period;selectedAccountMonths.clear();(f.months||[]).forEach(m=>selectedAccountMonths.add(m));selectedDueDays.clear();f.days.forEach(d=>selectedDueDays.add(d));selectedPaymentIds.clear();updateDueDayChips();toggleCustomDate();if(f.rangeMode==='relative')loadPaymentFilter.relative={anchor:f.rangeAnchor,from:f.from,to:f.to};renderTransactions();announcePayment('Favorito carregado: '+f.name+'. '+(f.scope==='all'?'Todos os meses. ':f.scope==='months'?PaymentExperience.filterLabel(f)+'. ':f.quick==='custom'&&f.rangeMode==='fixed'?'Mês selecionado. ':'Segue o mês selecionado. ')+(f.quick==='custom'?'Intervalo '+(f.rangeMode==='relative'?'relativo ao mês':'fixo')+': '+((f.from?f.from.split('-').reverse().join('/'):'sem início'))+' até '+((f.to?f.to.split('-').reverse().join('/'):'sem fim'))+'.':''));
 }
 function removePaymentFilter(){
  if(savedFilterSelect.value==='')return;
@@ -1169,7 +1185,26 @@ function removePaymentFilter(){
 }
 
 function toggleAccountFilters(){const show=accountFiltersPanel.style.display==='none';accountFiltersPanel.style.display=show?'block':'none';accountFilterButton.setAttribute('aria-expanded',String(show))}
-function changeAccountPeriod(){selectedPaymentIds.clear();if(accountPeriod.value!=='all')changeBaseMonth(accountPeriod.value);else renderTransactions()}
+function changeAccountPeriod(){
+ selectedPaymentIds.clear();
+ if(accountPeriod.value==='multi'){
+  if(!selectedAccountMonths.size)selectedAccountMonths.add(currentMonth());
+  const next=[...additionalAccountMonth.options].find(o=>o.value>currentMonth()&&!selectedAccountMonths.has(o.value));if(next)additionalAccountMonth.value=next.value;
+  loadPaymentFilter.relative=null;renderTransactions();
+ }else if(accountPeriod.value!=='all')changeBaseMonth(accountPeriod.value);else renderTransactions();
+}
+function renderAccountMonths(){
+ const panel=document.getElementById('accountMonthsPanel');if(!panel)return;
+ panel.hidden=accountPeriod.value!=='multi';
+ const months=PaymentExperience.normalizeMonths([...selectedAccountMonths]);
+ accountMonthChips.innerHTML=months.map(m=>`<button type="button" onclick="removeAccountMonth('${m}')" aria-label="Remover ${PaymentExperience.monthLabel(m)}">${PaymentExperience.monthLabel(m)} ×</button>`).join('');
+ accountMonthsNote.textContent=months.length?months.length+' mês(es) selecionado(s). Toque no mês para remover.':'Adicione ao menos um mês para mostrar as contas.';
+}
+function addAccountMonth(){
+ const month=additionalAccountMonth.value;if(!PaymentExperience.normalizeMonths([month]).length)return;
+ selectedAccountMonths.add(month);selectedPaymentIds.clear();renderTransactions();
+}
+function removeAccountMonth(month){selectedAccountMonths.delete(month);selectedPaymentIds.clear();renderTransactions()}
 function setAccountTab(mode){statusFilter.value=mode;dateQuickFilter.value='all';selectedPaymentIds.clear();renderTransactions()}
 function addDueDay(){const day=Number(customDueDay.value);if(!Number.isInteger(day)||day<1||day>31){alert('Informe um dia de 1 a 31.');return}selectedDueDays.add(day);selectedPaymentIds.clear();updateDueDayChips();renderTransactions()}
 function openFiltered(kind){
@@ -1235,14 +1270,17 @@ function renderBudgets(){
  homeBudgets.innerHTML=cats.length?cats.map(c=>{let spent=month.filter(t=>t.type==='expense'&&t.category===c).reduce((a,b)=>a+totalDue(b),0),limit=data.budgets[c],pct=Math.min(100,limit?spent/limit*100:0);return `<div class="card budget"><div class="budget-top"><strong>${escapeHTML(c)}</strong><span>${money(spent)} de ${money(limit)}</span></div><div class="progress"><span style="width:${pct}%"></span></div></div>`}).join(''):'<div class="empty">Nenhum orçamento definido.</div>';
 }
 function renderTransactions(){
+ renderAccountMonths();
  if(typeof loadPaymentFilter==='function'&&loadPaymentFilter.fixed){const f=loadPaymentFilter.fixed;if(dateQuickFilter.value!=='custom'||dateFrom.value!==f.from||dateTo.value!==f.to)loadPaymentFilter.fixed=null}
  if(typeof loadPaymentFilter==='function'&&loadPaymentFilter.relative){const r=loadPaymentFilter.relative;if(dateQuickFilter.value!=='custom'||accountPeriod.value==='all'||dateFrom.value!==r.from||dateTo.value!==r.to)loadPaymentFilter.relative=null}
  const q=search.value.trim().toLowerCase(),st=statusFilter.value,cat=categoryFilter.value,bf=bankFilter.value.trim().toLowerCase(),rf=receiptFilter.value,period=accountPeriod.value||currentMonth(),paidMode=st==='paid';
+ const months=period==='multi'?PaymentExperience.normalizeMonths([...selectedAccountMonths]):[period];
+ const paidInPeriod=t=>period==='all'?paidValue(t):months.reduce((cents,m)=>cents+Math.round(monthlyPaidTotal([t],m)*100),0)/100;
  let list=data.transactions.filter(t=>t.type==='expense');
- if(paidMode){list=list.filter(t=>period==='all'?paidValue(t)>0:monthlyPaidTotal([t],period)>0)}
+ if(paidMode){list=list.filter(t=>paidInPeriod(t)>0)}
  else{
   list=list.filter(t=>!t.paid);
-  if(period!=='all')list=list.filter(t=>ym(t.date)===period);
+  if(period!=='all')list=list.filter(t=>months.includes(ym(t.date)));
   if(st==='late')list=list.filter(t=>daysUntil(t.date)<0);
   if(st==='previousOverdue')list=list.filter(t=>t.date<currentMonth()+'-01'&&daysUntil(t.date)<0);
   if(st==='generalPending')list=list.filter(t=>ym(t.date)===currentMonth()||daysUntil(t.date)<0);
@@ -1261,17 +1299,17 @@ function renderTransactions(){
  list.sort((a,b)=>a.date.localeCompare(b.date)||String(a.title||'').localeCompare(String(b.title||''),'pt-BR'));
  // A changed filter cannot leave an invisible account selected for the next batch.
  const visibleIds=new Set(list.map(t=>t.id));for(const id of [...selectedPaymentIds])if(!visibleIds.has(id)||paidMode)selectedPaymentIds.delete(id);
- const total=paidMode?(period==='all'?list.reduce((sum,t)=>sum+Math.round(paidValue(t)*100),0)/100:monthlyPaidTotal(list,period)):list.reduce((sum,t)=>sum+Math.round(remainingValue(t)*100),0)/100;
- const monthLabel=period==='all'?'Todos os meses':new Date(period+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+ const total=list.reduce((sum,t)=>sum+Math.round((paidMode?paidInPeriod(t):remainingValue(t))*100),0)/100;
+ const monthLabel=period==='all'?'Todos os meses':period==='multi'?(months.length?months.map(PaymentExperience.monthLabel).join(' e '):'Nenhum mês selecionado'):PaymentExperience.monthLabel(period);
  const dayLabel=[...selectedDueDays].sort((a,b)=>a-b).map(d=>String(d).padStart(2,'0')).join(' e ');
  let summaryTitle=paidMode?'Pago neste filtro':'A pagar neste filtro';if(dayLabel)summaryTitle+=` · dias ${dayLabel}`;
  filterSummary.innerHTML=`<div class="eyebrow">${summaryTitle}</div><div class="value sm" style="margin-top:6px">${money(total)}</div><div class="item-meta">${list.length} ${list.length===1?'conta':'contas'} · ${monthLabel}</div>${mode==='custom'?`<div class="item-meta">Intervalo ${typeof loadPaymentFilter==='function'&&loadPaymentFilter.relative?'relativo ao mês':'fixo'}: ${(dateFrom.value?dateFrom.value.split('-').reverse().join('/'):'sem início')} até ${(dateTo.value?dateTo.value.split('-').reverse().join('/'):'sem fim')}</div>`:''}${paidMode?'<div class="payment-period-note">Inclui pagamentos parciais. O valor é o pago no período; as datas na lista são os vencimentos.</div>':''}`;
- const activeFilters=(q?1:0)+(cat!=='all'?1:0)+(bf?1:0)+(rf!=='all'?1:0)+selectedDueDays.size+(mode!=='all'?1:0);
+ const activeFilters=(q?1:0)+(cat!=='all'?1:0)+(bf?1:0)+(rf!=='all'?1:0)+selectedDueDays.size+(mode!=='all'?1:0)+(period==='multi'?1:0);
  accountFilterButton.textContent=activeFilters?`Filtrar (${activeFilters})`:'Filtrar';
  accountPendingTab.classList.toggle('active',!paidMode);accountPaidTab.classList.toggle('active',paidMode);
- const closed=period!=='all'&&isMonthClosed(period);closedMonthBanner.innerHTML=closed?'<div class="closed-banner">Este mês está fechado. Reabra em Relatórios para fazer alterações.</div>':'';
+ const closed=period!=='all'&&months.some(isMonthClosed);closedMonthBanner.innerHTML=closed?'<div class="closed-banner">Há mês fechado neste filtro. Reabra em Relatórios para alterar contas desse mês.</div>':'';
  txCount.textContent=list.length+(list.length===1?' conta':' contas');
- txList.innerHTML=list.map(t=>itemHTML(t,true,paidMode?(period==='all'?paidValue(t):monthlyPaidTotal([t],period)):null)).join('')||'<div class="empty">Nenhuma conta neste filtro.</div>';
+ txList.innerHTML=list.map(t=>itemHTML(t,true,paidMode?paidInPeriod(t):null)).join('')||'<div class="empty">Nenhuma conta neste filtro.</div>';
  updatePaymentSelectionBar();
 }
 
@@ -1436,24 +1474,27 @@ function transactionGroup(t){return t.groupId??t.seriesId??t.id}
 /* Pure payment experience helpers; mirrored inline in index.html. */
 const PaymentExperience=(()=>{
  function validMonth(value){return /^\d{4}-(0[1-9]|1[0-2])$/.test(value||'')}
+ function normalizeMonths(values){return [...new Set((Array.isArray(values)?values:[]).filter(v=>typeof v==='string'&&validMonth(v)))].sort()}
+ function monthLabel(month){return validMonth(month)?new Date(month+'-01T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'}):'Mês inválido'}
  function monthDays(month){const [y,m]=month.split('-').map(Number);return new Date(y,m,0,12).getDate()}
  function validDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(value||'')&&validMonth(value.slice(0,7))&&Number(value.slice(8))>=1&&Number(value.slice(8))<=monthDays(value.slice(0,7))}
  function rangeAnchor(input){
-  if(input.scope==='all'||input.period==='all'||input.quick!=='custom'||input.rangeMode==='fixed')return null;
+  if(['all','months'].includes(input.scope)||['all','multi'].includes(input.period)||input.quick!=='custom'||input.rangeMode==='fixed')return null;
   const a=input.rangeAnchor;
   if(a&&validMonth(a.month)&&[a.from,a.to].every(d=>!d||validDate(d))&&(a.from||a.to)&&(!a.from||!a.to||a.from<=a.to))return {month:a.month,from:a.from||'',to:a.to||''};
   // Legacy inference requires two valid ordered endpoints in one calendar month.
   if(!a&&!input.rangeMode&&validDate(input.from)&&validDate(input.to)&&input.from<=input.to&&input.from.slice(0,7)===input.to.slice(0,7))return {month:input.from.slice(0,7),from:input.from,to:input.to};
   return null;
  }
- function filterLabel(saved){return (saved.scope==='all'?'todos os meses':'mês selecionado')+(saved.quick==='custom'?(rangeAnchor(saved)?' · intervalo relativo ao mês':' · intervalo fixo'):'')}
+ function filterLabel(saved){return (saved.scope==='all'?'todos os meses':saved.scope==='months'?normalizeMonths(saved.months).map(monthLabel).join(' e ')||'escolha os meses':'mês selecionado')+(saved.quick==='custom'?(rangeAnchor(saved)?' · intervalo relativo ao mês':' · intervalo fixo'):'')}
  function moveRange(anchor,month){
   const [ay,am]=anchor.month.split('-').map(Number),[y,m]=month.split('-').map(Number);
   const move=date=>{if(!date)return '';const [dy,dm,day]=date.split('-').map(Number),d=new Date(y,m-1+(dy-ay)*12+dm-am,1,12),target=String(d.getFullYear()).padStart(4,'0')+'-'+String(d.getMonth()+1).padStart(2,'0'),last=monthDays(target);return target+'-'+String(day===monthDays(date.slice(0,7))?last:Math.min(day,last)).padStart(2,'0')};
   return {from:move(anchor.from),to:move(anchor.to)};
  }
  function captureFilter(name,input){
-  const f={name:String(name||'').trim(),scope:input.period==='all'?'all':'month',days:[...new Set((input.days||[]).map(Number).filter(d=>Number.isInteger(d)&&d>=1&&d<=31))].sort((a,b)=>a-b)};
+  const f={name:String(name||'').trim(),scope:input.period==='all'?'all':input.period==='multi'?'months':'month',days:[...new Set((input.days||[]).map(Number).filter(d=>Number.isInteger(d)&&d>=1&&d<=31))].sort((a,b)=>a-b)};
+  if(f.scope==='months')f.months=normalizeMonths(input.months);
   for(const key of ['search','category','bank','receipt','status','quick','from','to','customDay'])f[key]=String(input[key]||'');
   if(f.quick==='custom'){
    f.rangeAnchor=input.rangeAnchor?rangeAnchor(input):null;
@@ -1463,7 +1504,8 @@ const PaymentExperience=(()=>{
   return f;
  }
  function restoreFilter(saved,month){
-  const f={...captureFilter(saved.name,{...saved,period:'all'}),scope:saved.scope==='all'?'all':'month',period:saved.scope==='all'?'all':month},anchor=rangeAnchor(saved);
+  const scope=['all','months'].includes(saved.scope)?saved.scope:'month';
+  const f={...captureFilter(saved.name,{...saved,period:scope==='months'?'multi':'all'}),scope,period:scope==='all'?'all':scope==='months'?'multi':month},anchor=rangeAnchor(saved);
   if(anchor&&validMonth(month)){Object.assign(f,moveRange(anchor,month));f.rangeAnchor=anchor;f.rangeMode='relative'}
   else if(f.quick==='custom'){delete f.rangeAnchor;f.rangeMode='fixed'}
   return f;
@@ -1482,7 +1524,7 @@ const PaymentExperience=(()=>{
   }
   return result;
  }
- return {captureFilter,restoreFilter,filterLabel,normalizedName,possibleDuplicates,nextRegisteredMonths};
+ return {captureFilter,restoreFilter,filterLabel,normalizeMonths,monthLabel,normalizedName,possibleDuplicates,nextRegisteredMonths};
 })();
 if(typeof module!=='undefined'&&module.exports)module.exports=PaymentExperience;
 // PAYMENT_EXPERIENCE_END
